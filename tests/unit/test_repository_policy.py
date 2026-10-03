@@ -35,7 +35,15 @@ class RepositoryPolicyTests(unittest.TestCase):
         )
         for path in paths:
             with self.subTest(path=path):
-                self.assertEqual(git("check-ignore", "--no-index", "-q", path).returncode, 0)
+                candidate = Path(path)
+                # Git tracks a symlink entry, never files beyond that entry.
+                for parent in candidate.parents:
+                    if (ROOT / parent).is_symlink():
+                        candidate = parent
+                        break
+                self.assertEqual(
+                    git("check-ignore", "--no-index", "-q", candidate.as_posix()).returncode, 0
+                )
 
     def test_source_and_templates_remain_trackable(self) -> None:
         for path in (
