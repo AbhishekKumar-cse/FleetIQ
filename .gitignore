@@ -3,12 +3,12 @@
 /docs/
 
 # Local datasets, model artifacts, credentials and tool installations.
-/data/
-/artifacts/
-/.secrets/
-/.tools/
-/.scratch/
-/.venv/
+/data
+/artifacts
+/.secrets
+/.tools
+/.scratch
+/.venv
 .env
 .env.*
 !.env.example
@@ -20,7 +20,7 @@ __pycache__/
 .ruff_cache/
 .mypy_cache/
 .ipynb_checkpoints/
-node_modules/
+node_modules
 .next/
 coverage/
 playwright-report/
@@ -43,3 +43,5 @@ test-results/
 /dist/
 /build/
 *.egg-info/
+
+*.tsbuildinfo
