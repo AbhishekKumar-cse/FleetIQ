@@ -8,9 +8,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 def git(*args: str) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        ["git", *args], cwd=ROOT, text=True, capture_output=True, check=False
-    )
+    return subprocess.run(["git", *args], cwd=ROOT, text=True, capture_output=True, check=False)
 
 
 class RepositoryPolicyTests(unittest.TestCase):
@@ -36,9 +34,7 @@ class RepositoryPolicyTests(unittest.TestCase):
         )
         for path in paths:
             with self.subTest(path=path):
-                self.assertEqual(
-                    git("check-ignore", "--no-index", "-q", path).returncode, 0
-                )
+                self.assertEqual(git("check-ignore", "--no-index", "-q", path).returncode, 0)
 
     def test_source_and_templates_remain_trackable(self) -> None:
         for path in (
@@ -51,9 +47,7 @@ class RepositoryPolicyTests(unittest.TestCase):
             ".env.example",
         ):
             with self.subTest(path=path):
-                self.assertEqual(
-                    git("check-ignore", "--no-index", "-q", path).returncode, 1
-                )
+                self.assertEqual(git("check-ignore", "--no-index", "-q", path).returncode, 1)
 
     def test_no_tracked_or_staged_documents(self) -> None:
         tracked = git("ls-files", "-z")
@@ -76,13 +70,10 @@ class RepositoryPolicyTests(unittest.TestCase):
             if not path:
                 continue
             with self.subTest(path=path):
-                self.assertFalse(
-                    path.startswith(("docs/", "data/", "artifacts/", ".secrets/"))
-                )
+                self.assertFalse(path.startswith(("docs/", "data/", "artifacts/", ".secrets/")))
                 self.assertNotIn(Path(path).suffix.lower(), forbidden_suffixes)
                 self.assertFalse(
-                    Path(path).name.startswith(".env")
-                    and Path(path).name != ".env.example"
+                    Path(path).name.startswith(".env") and Path(path).name != ".env.example"
                 )
 
 
