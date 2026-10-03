@@ -1,0 +1,101 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "cycle": {
+      "exclusiveMinimum": 0,
+      "title": "Cycle",
+      "type": "integer"
+    },
+    "installation_id": {
+      "default": null,
+      "title": "Installation Id",
+      "type": "null"
+    },
+    "life_unit": {
+      "const": "cycles",
+      "default": "cycles",
+      "title": "Life Unit",
+      "type": "string"
+    },
+    "measured_at": {
+      "default": null,
+      "title": "Measured At",
+      "type": "null"
+    },
+    "schema_version": {
+      "const": "cmapss-v1",
+      "default": "cmapss-v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "sensors": {
+      "items": {
+        "type": "number"
+      },
+      "maxItems": 21,
+      "minItems": 21,
+      "title": "Sensors",
+      "type": "array"
+    },
+    "settings": {
+      "maxItems": 3,
+      "minItems": 3,
+      "prefixItems": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        }
+      ],
+      "title": "Settings",
+      "type": "array"
+    },
+    "source_kind": {
+      "const": "nasa_cmapss",
+      "default": "nasa_cmapss",
+      "title": "Source Kind",
+      "type": "string"
+    },
+    "subset": {
+      "enum": [
+        "FD001",
+        "FD002",
+        "FD003",
+        "FD004"
+      ],
+      "title": "Subset",
+      "type": "string"
+    },
+    "transport_received_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Transport Received At"
+    },
+    "unit_id": {
+      "exclusiveMinimum": 0,
+      "title": "Unit Id",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "subset",
+    "unit_id",
+    "cycle",
+    "settings",
+    "sensors"
+  ],
+  "title": "CmapssObservation",
+  "type": "object"
+}

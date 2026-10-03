@@ -1,0 +1,127 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "aircraft_id": {
+      "format": "uuid",
+      "title": "Aircraft Id",
+      "type": "string"
+    },
+    "ambient_temperature_c": {
+      "title": "Ambient Temperature C",
+      "type": "number"
+    },
+    "component_age_hours": {
+      "minimum": 0,
+      "title": "Component Age Hours",
+      "type": "number"
+    },
+    "component_serial": {
+      "minLength": 1,
+      "title": "Component Serial",
+      "type": "string"
+    },
+    "engine_serial": {
+      "minLength": 1,
+      "title": "Engine Serial",
+      "type": "string"
+    },
+    "flight_cycles": {
+      "minimum": 0,
+      "title": "Flight Cycles",
+      "type": "integer"
+    },
+    "installation_id": {
+      "format": "uuid",
+      "title": "Installation Id",
+      "type": "string"
+    },
+    "life_unit": {
+      "const": "operating_hours",
+      "default": "operating_hours",
+      "title": "Life Unit",
+      "type": "string"
+    },
+    "measured_at": {
+      "format": "date-time",
+      "title": "Measured At",
+      "type": "string"
+    },
+    "oil_pressure_kpa": {
+      "minimum": 0,
+      "title": "Oil Pressure Kpa",
+      "type": "number"
+    },
+    "operating_hours": {
+      "minimum": 0,
+      "title": "Operating Hours",
+      "type": "number"
+    },
+    "pressure_unit": {
+      "const": "kPa",
+      "default": "kPa",
+      "title": "Pressure Unit",
+      "type": "string"
+    },
+    "recorded_at": {
+      "format": "date-time",
+      "title": "Recorded At",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "synthetic-engine-v1",
+      "default": "synthetic-engine-v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "source_kind": {
+      "const": "synthetic_engine",
+      "default": "synthetic_engine",
+      "title": "Source Kind",
+      "type": "string"
+    },
+    "temperature_c": {
+      "title": "Temperature C",
+      "type": "number"
+    },
+    "temperature_unit": {
+      "const": "degC",
+      "default": "degC",
+      "title": "Temperature Unit",
+      "type": "string"
+    },
+    "vibration_mm_s": {
+      "minimum": 0,
+      "title": "Vibration Mm S",
+      "type": "number"
+    },
+    "vibration_unit": {
+      "const": "mm/s",
+      "default": "mm/s",
+      "title": "Vibration Unit",
+      "type": "string"
+    },
+    "workload": {
+      "minimum": 0,
+      "title": "Workload",
+      "type": "number"
+    }
+  },
+  "required": [
+    "aircraft_id",
+    "engine_serial",
+    "component_serial",
+    "installation_id",
+    "measured_at",
+    "recorded_at",
+    "operating_hours",
+    "component_age_hours",
+    "flight_cycles",
+    "workload",
+    "ambient_temperature_c",
+    "temperature_c",
+    "oil_pressure_kpa",
+    "vibration_mm_s"
+  ],
+  "title": "SyntheticObservation",
+  "type": "object"
+}

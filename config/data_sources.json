@@ -1,0 +1,30 @@
+{
+  "version": "data-sources-v1",
+  "cmapss": {
+    "source_kind": "nasa_cmapss",
+    "track": "cmapss_benchmark",
+    "catalog_url": "https://data.nasa.gov/dataset/cmapss-jet-engine-simulated-data",
+    "legacy_url": "https://data.nasa.gov/docs/legacy/CMAPSSData.zip",
+    "archive_url": "https://zenodo.org/records/15346912/files/CMAPSSData.zip?download=1",
+    "endorsement_url": "https://github.com/nasa/progpy/blob/master/src/progpy/datasets/nasa_cmapss.py",
+    "record_url": "https://zenodo.org/records/15346912",
+    "publisher": "NASA Diagnostics and Prognostics Group",
+    "published_md5": "79a22f36e80606c69d0e9e4da5bb2b7a",
+    "license_review": "not_specified_in_NASA_catalog; verify_distribution_rights_before_release",
+    "subsets": ["FD001", "FD002", "FD003", "FD004"],
+    "life_unit": "cycles",
+    "column_order": ["unit_id", "cycle", "setting_1", "setting_2", "setting_3", "sensor_1", "sensor_2", "sensor_3", "sensor_4", "sensor_5", "sensor_6", "sensor_7", "sensor_8", "sensor_9", "sensor_10", "sensor_11", "sensor_12", "sensor_13", "sensor_14", "sensor_15", "sensor_16", "sensor_17", "sensor_18", "sensor_19", "sensor_20", "sensor_21"],
+    "sensor_units": "NASA native channel values; physical unit mappings not inferred",
+    "test_rul_access": "evaluator_only",
+    "calendar": "not_provided"
+  },
+  "synthetic": {
+    "source_kind": "synthetic_engine",
+    "track": "synthetic_engine_demo",
+    "life_unit": "operating_hours",
+    "purpose": "fictional integrated demonstration and policy experiments",
+    "channels": {"temperature_c": "degC", "oil_pressure_kpa": "kPa", "vibration_mm_s": "mm/s"},
+    "latent_truth_access": "evaluator_only",
+    "physical_validity": "disclosed illustrative relationships; not aircraft certification evidence"
+  }
+}
