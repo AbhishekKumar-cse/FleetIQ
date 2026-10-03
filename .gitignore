@@ -1,0 +1,45 @@
+# Project policy: keep all generated documentation in docs/.
+# Never stage or commit documentation; keep this directory ignored.
+/docs/
+
+# Local datasets, model artifacts, credentials and tool installations.
+/data/
+/artifacts/
+/.secrets/
+/.tools/
+/.scratch/
+/.venv/
+.env
+.env.*
+!.env.example
+
+# Python and frontend generated files.
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+node_modules/
+.next/
+coverage/
+playwright-report/
+test-results/
+*.log
+
+# Human documents belong under docs/, including scaffolder output.
+*.md
+*.pdf
+*.doc
+*.docx
+*.ppt
+*.pptx
+*.ipynb
+*.rtf
+*.odt
+*.odp
+
+# Python distribution output.
+/dist/
+/build/
+*.egg-info/

@@ -1,0 +1,47 @@
+[project]
+name = "fleetiq"
+version = "0.1.0"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "alembic>=1.20.0",
+    "fastapi>=0.142.2",
+    "psycopg[binary]>=3.3.6",
+    "pydantic-settings>=2.15.0",
+    "sqlalchemy>=2.1.3",
+    "uvicorn>=0.54.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = [
+    "apps/api/fleetiq_api",
+    "services/worker/fleetiq_worker",
+    "services/ml-inference/fleetiq_inference",
+    "packages/domain/fleetiq_domain",
+    "packages/data/fleetiq_data",
+    "packages/features/fleetiq_features",
+    "packages/scheduling/fleetiq_scheduling",
+    "packages/simulation/fleetiq_simulation",
+    "ml/training/fleetiq_training",
+    "ml/evaluation/fleetiq_evaluation",
+    "ml/registry/fleetiq_registry",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--strict-markers"
+markers = [
+    "integration: isolated service tests",
+    "ml: leakage and model tests",
+    "e2e: full-system tests",
+]
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "pytest>=9.1.1",
+    "ruff>=0.16.10",
+]
