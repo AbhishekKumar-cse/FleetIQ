@@ -1,0 +1,9 @@
+{
+  "version": "features-v3",
+  "composition": ["features-v1", "features-v2", "installation", "context"],
+  "fit_partition": "train",
+  "technical_join": "occurred_at <= as_of AND recorded_at <= as_of",
+  "unknown_manufacture_date": "excluded",
+  "usage": "installation_cumulative_observed_counters",
+  "unknown_category": "explicit_indicator"
+}
