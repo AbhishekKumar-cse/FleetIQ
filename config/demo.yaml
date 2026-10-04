@@ -1,0 +1,18 @@
+version: fictional-fleet-v1
+epoch: '2026-01-01T00:00:00+00:00'
+hours: 336
+aircraft_count: 50
+seed: 26249
+engine_bays: 2
+mechanics: 4
+inspectors: 2
+initial_engine_stock: 4
+confirmed_receipt_quantity: 2
+confirmed_receipt_hour: 72
+assumptions:
+  - Fictional single-engine aircraft; no actual military identities or operating records
+  - One operating hour per active hourly simulation interval; no usage during maintenance
+  - Mechanical and inspection workers belong to disjoint skill pools
+  - Engine exchange requires one compatible spare, two work hours, one inspection hour and one release hour
+  - Historical failures truncate readings; replacement starts a new serial and installation
+  - Unannounced future receipts are evaluator-only; announced inbound is not on-hand stock
