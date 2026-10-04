@@ -32,3 +32,16 @@ roles:
 synthetic_rul: unsupported_censoring_and_intervention
 synthetic_history_minimum: 3
 benchmark_history_minimum: 30
+training:
+  seed: 26249
+  threads: 2
+  class_weight: balanced
+  logistic: {C: 1.0, max_iter: 2000, tol: 0.00001}
+evaluation:
+  tune_anchor: native_cycles_from_30_every_10_excluding_terminal
+  minimum_cycle: 30
+  stride_cycles: 10
+  false_alert_budget_per_1000_cycles: 5
+  bootstrap_engines: 100
+  final_anchor: official_last_observed_cycle_only
+  horizon_cycles: 30
