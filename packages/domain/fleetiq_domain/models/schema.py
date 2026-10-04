@@ -16,7 +16,7 @@ TYPES = {
     "int": sa.BigInteger,
     "float": sa.Double,
     "bool": sa.Boolean,
-    "json": JSONB,
+    "json": lambda: JSONB(none_as_null=True),
 }
 
 
