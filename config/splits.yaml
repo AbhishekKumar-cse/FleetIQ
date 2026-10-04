@@ -1,0 +1,8 @@
+benchmark:
+  version: benchmark-groups-v1
+  source: NASA
+  subset: FD001
+  source_split: train
+  fractions: {fit: 0.60, tune: 0.20, calibration: 0.20}
+  identity: source_subset_source_split_native_engine
+  eda_fit_boundary: sha256_first8_mod100_less_than60
