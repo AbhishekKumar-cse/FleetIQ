@@ -7,6 +7,30 @@ from alembic import command
 from fleetiq_api.settings import Settings
 from fleetiq_domain.db import guard_test_url
 from fleetiq_domain.migrations import migration_config
+
+
+@pytest.fixture
+def domain_connection(isolated_database):
+    from fleetiq_domain.models.assets import Organization, Site, Fleet, AircraftType, Aircraft
+    from fleetiq_domain.models.components import Component, Installation
+    from datetime import UTC, datetime
+    from sqlalchemy import insert
+    engine=create_engine(isolated_database[0])
+    try:
+        with engine.begin() as connection:
+            ids={}
+            ids['organization']=connection.scalar(insert(Organization).values(code='DEMO',name='Demo').returning(Organization.id))
+            for key,model in (('site',Site),('fleet',Fleet),('type',AircraftType)):
+                values=dict(organization_id=ids['organization'],code='DEMO')
+                if model!=AircraftType:
+                    values['name']='Demo'
+                ids[key]=connection.scalar(insert(model).values(**values).returning(model.id))
+            ids['aircraft']=connection.scalar(insert(Aircraft).values(organization_id=ids['organization'],tail_label='DEMO',type_id=ids['type'],site_id=ids['site'],fleet_id=ids['fleet']).returning(Aircraft.id))
+            ids['component']=connection.scalar(insert(Component).values(organization_id=ids['organization'],serial='DEMO',kind='engine').returning(Component.id))
+            ids['installation']=connection.scalar(insert(Installation).values(organization_id=ids['organization'],aircraft_id=ids['aircraft'],component_id=ids['component'],position='engine',installed_at=datetime(2026,1,1,tzinfo=UTC)).returning(Installation.id))
+            yield connection,ids
+    finally:
+        engine.dispose()
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import make_url
 

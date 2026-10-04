@@ -13,6 +13,9 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def freeze(module, revision, parent, extra):
+    order = ["components", "telemetry", "history", "work", "inventory"]
+    for dependency in order[: order.index(module)]:
+        importlib.import_module(f"fleetiq_domain.models.{dependency}")
     before = set(Base.metadata.tables)
     imported = importlib.import_module(f"fleetiq_domain.models.{module}")
     names = set(Base.metadata.tables) - before
