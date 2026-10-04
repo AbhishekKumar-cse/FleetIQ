@@ -1,0 +1,13 @@
+{
+  "version": "features-v2",
+  "base_version": "features-v1",
+  "interval": "(as_of - window, as_of]",
+  "ewma_alpha": 0.3,
+  "statistics": ["rolling_mean", "rolling_std", "lag", "delta", "derivative", "slope", "ewma", "residual", "skew", "kurtosis_excess"],
+  "tracks": {
+    "cmapss_benchmark": {"windows": [30], "time_unit": "cycles"},
+    "synthetic_engine_demo": {"windows": [600, 3600], "time_unit": "seconds"}
+  },
+  "minimum_samples": {"slope": 2, "skew": 3, "kurtosis_excess": 4},
+  "baseline_fit_partition": "train"
+}
