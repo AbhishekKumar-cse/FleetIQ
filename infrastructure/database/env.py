@@ -5,6 +5,7 @@ from fleetiq_domain.db import Base, guard_test_url
 from fleetiq_domain.models import (
     assets,  # noqa: F401 - register ORM metadata
     components,  # noqa: F401
+    fleet,  # noqa: F401
     history,  # noqa: F401
     inventory,  # noqa: F401
     predictions,  # noqa: F401
