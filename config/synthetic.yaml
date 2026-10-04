@@ -26,3 +26,15 @@ measurement:
   vibration_damage_mm_s: 6.0
   vibration_noise_mm_s: 0.05
 truth_access: evaluator_only
+failures:
+  base_hazard_per_hour: 0.0001
+  damage_hazard_per_hour: 0.04
+  damage_exponent: 2.0
+  confirmation_delay_hours: 2.0
+quality:
+  default_window_hours: 2
+  drift_per_hour: 0.6
+  spike_magnitude: 25.0
+  clock_offset_hours: 10.0
+  fault_kinds: [missing, drift, spike, clock, unit_mismatch]
+  output: raw observed faults for later validation/quarantine; fault truth stays evaluator-only
