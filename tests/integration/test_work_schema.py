@@ -169,5 +169,11 @@ def test_authorizations_versions_and_release_prerequisites(work_fixture):
         .order_by(Approval.target_version)
     ).all()
     assert len(changes) == 8 and changes[-1] == ("released", 8)
+    targets = connection.execute(
+        select(Approval.target_kind, Approval.target_id).where(
+            Approval.work_order_id == ids["work"]
+        )
+    ).all()
+    assert all(target == ("work_order", ids["work"]) for target in targets)
     with pytest.raises(DBAPIError), connection.begin_nested():
         connection.execute(update(Approval).values(reason="rewrite"))

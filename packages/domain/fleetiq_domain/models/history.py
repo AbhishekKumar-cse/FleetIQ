@@ -92,6 +92,7 @@ Index(
     FailureEvent.component_id,
     FailureEvent.observed_at,
 )
+Index("ix_flight_aircraft_time", Flight.organization_id, Flight.aircraft_id, Flight.start)
 Index(
     "ix_maintenance_aircraft_time",
     MaintenanceEvent.organization_id,

@@ -107,6 +107,8 @@ Approval = entity(
     {
         "work_order_id": "uuid:required",
         "actor_id": "uuid:required",
+        "target_kind": "text:required",
+        "target_id": "uuid:required",
         "action": "text:required",
         "reason": "text:required",
         "target_version": "int:required",
@@ -114,6 +116,17 @@ Approval = entity(
     },
     refs={"work_order_id": "work_order"},
     checks=("target_version >= 0", "length(trim(reason)) > 0"),
+    computed={"target_kind": "'work_order'::text", "target_id": "work_order_id"},
+)
+
+sa.Index(
+    "ix_work_aircraft_state", WorkOrder.organization_id, WorkOrder.aircraft_id, WorkOrder.state
+)
+sa.Index(
+    "ix_task_work_state",
+    MaintenanceTask.organization_id,
+    MaintenanceTask.work_order_id,
+    MaintenanceTask.state,
 )
 
 EXTRA = []

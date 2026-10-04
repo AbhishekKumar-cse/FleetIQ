@@ -20,7 +20,7 @@ TYPES = {
 }
 
 
-def entity(name, fields, *, refs=None, checks=(), unique=(), primary=None):
+def entity(name, fields, *, refs=None, checks=(), unique=(), primary=None, computed=None):
     columns = []
     if primary is None:
         columns.append(
@@ -47,6 +47,11 @@ def entity(name, fields, *, refs=None, checks=(), unique=(), primary=None):
             sa.Column(
                 field,
                 TYPES[kind](),
+                *(
+                    [sa.Computed(computed[field], persisted=True)]
+                    if field in (computed or {})
+                    else []
+                ),
                 nullable=nullable == "optional",
                 server_default=sa.text(default[0]) if default else None,
             )
