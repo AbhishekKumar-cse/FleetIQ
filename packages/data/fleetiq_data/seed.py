@@ -455,10 +455,34 @@ def demo_credentials(settings):
     return json.loads(path.read_text())
 
 
+def grant_demo_import(connection):
+    """Trusted provisioning only: explicit local demo import rights, no sign-off rights."""
+    org, user, role = demo_id("organization"), demo_id("user"), demo_id("import-role")
+    ensure(
+        connection,
+        Role,
+        dict(
+            id=role, organization_id=org, code="demo-data-importer", permissions=["dataset:import"]
+        ),
+    )
+    ensure(
+        connection,
+        RoleAssignment,
+        dict(
+            id=demo_id("import-role-assignment"),
+            organization_id=org,
+            user_id=user,
+            role_id=role,
+            scope_kind="organization",
+        ),
+    )
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input", type=Path, required=True)
     parser.add_argument("--demo-only", action="store_true")
+    parser.add_argument("--grant-import", action="store_true")
     args = parser.parse_args()
     if not args.demo_only or not args.input.resolve().is_relative_to(ROOT / "data/synthetic"):
         parser.error("explicit demo-only mode and data/synthetic input required")
@@ -473,6 +497,8 @@ def main():
                 demo_only=True,
                 password_hash=PasswordHash.recommended().hash(credentials["password"]),
             )
+            if args.grant_import:
+                grant_demo_import(c)
         print(json.dumps(result, indent=2))
         print("Demo login is stored privately in .secrets/demo_login.json; no credentials printed.")
     finally:
