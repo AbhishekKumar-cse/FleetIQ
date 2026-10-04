@@ -1,0 +1,22 @@
+{
+  "version": "targets-v1",
+  "cmapss": {
+    "life_unit": "cycles",
+    "rul": "training engine terminal cycle minus observation cycle",
+    "horizon_cycles": 30,
+    "positive": "0 < RUL <= 30",
+    "terminal_rows": "ineligible: already failed",
+    "as_of": "native observation cycle; no calendar conversion",
+    "recorded_time": "terminal cycle for retrospectively available training labels",
+    "official_test_rul": "evaluator_only; never joined to observed features"
+  },
+  "synthetic": {
+    "life_unit": "operating_hours",
+    "horizon_hours": 24,
+    "clock": "UTC hourly simulation steps",
+    "positive": "confirmed event in (as_of, as_of + 24h] recorded by label cutoff",
+    "negative": "uninterrupted full follow-up recorded by label cutoff",
+    "ineligible": ["already_failed", "immature_followup", "intervened_or_replaced", "confirmation_unavailable_at_cutoff"],
+    "access": "evaluator_only"
+  }
+}
