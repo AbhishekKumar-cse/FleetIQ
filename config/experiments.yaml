@@ -1,0 +1,34 @@
+version: eligibility-v1
+splits: config/splits.yaml
+sources:
+  benchmark: data/processed/cmapss/train.parquet
+  synthetic: data/synthetic/observed
+targets: config/targets.json
+tasks:
+  failure_risk:
+    minimum_fit_engines: 20
+    minimum_calibration_events: 20
+    minimum_calibration_positive_engines: 20
+    minimum_calibration_negative_engines: 20
+    probability_deployment_enabled: false
+    metrics: [average_precision, brier_score, calibration_curve, event_recall, false_alerts_per_1000_exposure]
+    selection: tune_only_event_recall_at_most_5_false_alerts_per_1000_native_exposure
+    calibrator_fit: calibration_only_after_hyperparameters_frozen
+  rul:
+    minimum_fit_engines: 20
+    minimum_calibration_engines: 20
+    metrics: [mae_native_cycles, rmse_native_cycles, interval_coverage, interval_width]
+    selection: tune_only_mae_then_interval_coverage_0.90
+  anomaly:
+    minimum_fit_engines: 10
+    metrics: [false_alerts_per_1000_exposure, detection_delay_native_unit]
+    selection: training_reference_then_tune_only_false_alert_budget
+roles:
+  fit: preprocessing_and_estimator_fit
+  tune: hyperparameters_and_operating_threshold_selection
+  calibration: calibration_and_interval_fit_after_selection_freeze
+  final_future: inventory_only_outcomes_inaccessible_to_selection
+  nasa_official_test: evaluator_only_not_opened
+synthetic_rul: unsupported_censoring_and_intervention
+synthetic_history_minimum: 3
+benchmark_history_minimum: 30
