@@ -114,3 +114,14 @@ def test_synthetic_context_parity_and_recording_cutoff(tmp_path):
         context=(*spec.context, ContextRecord("install", at, later, 999, 999, "new")),
     )
     assert snapshot(changed, fit) == before
+    delayed = replace(
+        spec,
+        as_of=at + timedelta(seconds=5),
+        channels={
+            name: (replace(rows[0], recorded_at=at + timedelta(seconds=5)),)
+            for name, rows in spec.channels.items()
+        },
+    )
+    delayed_fit = fit_pipeline([delayed, delayed], track=spec.track)
+    assert len(delayed_fit.baselines) == 3
+    assert snapshot(delayed, delayed_fit)["features"]["temperature_c.w3600.residual"] == 0

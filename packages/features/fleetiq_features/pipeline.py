@@ -282,11 +282,14 @@ def fit_pipeline(specs, *, track, partition="train", context_fit=None):
             context_rows, track=track, partition="train", training_groups=groups
         )
     values = {name: [] for name in track_schema(track)["channels"]}
+    seen_observations = set()
     for spec in specs:
         _, _, channels, *_ = causal_input(spec)
         for name, rows in channels.items():
-            if rows and eligible(rows[-1]) and rows[-1].at == spec.as_of:
+            identity = (name, spec.stream, rows[-1].at) if rows else None
+            if rows and eligible(rows[-1]) and identity not in seen_observations:
                 values[name].append(float(rows[-1].value))
+                seen_observations.add(identity)
     baselines = tuple(
         fit_baseline(
             v,
