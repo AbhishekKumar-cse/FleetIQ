@@ -1,0 +1,41 @@
+name: fleetiq
+services:
+  db:
+    image: ${TIMESCALE_IMAGE:?Resolve config/images.env first}
+    entrypoint: ["/bin/sh", "/fleetiq/start.sh"]
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_DB: fleetiq
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_admin_password
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256
+      TIMESCALEDB_TELEMETRY: "off"
+    command:
+      - postgres
+      - -c
+      - timescaledb.telemetry_level=off
+      - -c
+      - log_error_verbosity=terse
+    ports:
+      - "127.0.0.1:${DB_PORT:?Configure isolated database port}:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./infrastructure/database/init/roles.sql:/docker-entrypoint-initdb.d/010-roles.sql:ro
+      - ./infrastructure/database/init/start.sh:/fleetiq/start.sh:ro
+    secrets:
+      - db_admin_password
+      - db_roles
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d fleetiq"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 20s
+    restart: unless-stopped
+    shm_size: 128mb
+volumes:
+  db_data:
+secrets:
+  db_admin_password:
+    file: ${DB_ADMIN_PASSWORD_FILE:?Configure private database password file}
+  db_roles:
+    file: ${DB_ROLES_FILE:?Configure private role credentials file}

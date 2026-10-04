@@ -19,6 +19,10 @@ class Settings(BaseSettings):
     migration_database_url: SecretStr
     test_admin_database_url: SecretStr
     mlflow_database_url: SecretStr
+    db_bootstrap_admin_url: SecretStr | None = None
+    db_port: int = Field(default=5433, ge=1024, le=65535)
+    db_admin_password_file: Path | None = None
+    db_roles_file: Path | None = None
     artifact_root: Path
     report_root: Path
     model_bundle_path: Path
@@ -40,9 +44,12 @@ class Settings(BaseSettings):
         "migration_database_url",
         "test_admin_database_url",
         "mlflow_database_url",
+        "db_bootstrap_admin_url",
     )
     @classmethod
-    def database_driver(cls, value: SecretStr) -> SecretStr:
+    def database_driver(cls, value: SecretStr | None) -> SecretStr | None:
+        if value is None:
+            return value
         if not value.get_secret_value().startswith("postgresql+psycopg://"):
             raise ValueError("database URL must use the PostgreSQL psycopg driver")
         return value
@@ -64,8 +71,12 @@ class Settings(BaseSettings):
             "auth_private_key_path",
             "auth_public_key_path",
             "replay_source",
+            "db_admin_password_file",
+            "db_roles_file",
         ):
             p = getattr(self, name)
+            if p is None:
+                continue
             setattr(
                 self,
                 name,
