@@ -7,7 +7,7 @@ from alembic import command
 from fleetiq_api.settings import Settings
 from fleetiq_domain.db import guard_test_url
 from fleetiq_domain.migrations import migration_config
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.engine import make_url
 
 
@@ -42,8 +42,29 @@ def isolated_database():
         command.upgrade(migration_config(url, expected_test_database=name), "head")
         yield url, name
     finally:
-        if created:
-            guard_test_url(url, name)
-            with admin_engine.connect() as connection:
-                connection.exec_driver_sql(f'DROP DATABASE "{name}" WITH (FORCE)')
-        admin_engine.dispose()
+        try:
+            if created:
+                guard_test_url(url, name)
+                guard_test_url(bootstrap, name)
+                # Stop asynchronous worker reconnection before guarded, database-scoped termination.
+                cleanup_engine = create_engine(
+                    bootstrap.set(database="postgres"), isolation_level="AUTOCOMMIT"
+                )
+                try:
+                    with cleanup_engine.connect() as connection:
+                        connection.exec_driver_sql(
+                            f'ALTER DATABASE "{name}" ALLOW_CONNECTIONS false'
+                        )
+                        connection.execute(
+                            text(
+                                "SELECT pg_terminate_backend(pid, 5000) FROM pg_stat_activity "
+                                "WHERE datname=:name AND pid<>pg_backend_pid()"
+                            ),
+                            {"name": name},
+                        ).all()
+                finally:
+                    cleanup_engine.dispose()
+                with admin_engine.connect() as connection:
+                    connection.exec_driver_sql(f'DROP DATABASE "{name}"')
+        finally:
+            admin_engine.dispose()
