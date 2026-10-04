@@ -31,6 +31,7 @@ class Settings(BaseSettings):
     auth_key_id: str = Field(min_length=1)
     auth_private_key_path: Path
     auth_public_key_path: Path
+    auth_cookie_secure: bool | None = None
     inference_workload_token: SecretStr = Field(min_length=32)
     allowed_origins: list[str]
     worker_concurrency: int = Field(default=1, ge=1, le=16)
