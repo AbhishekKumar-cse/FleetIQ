@@ -1,5 +1,4 @@
 from datetime import UTC, datetime, timedelta
-from uuid import uuid4
 
 import pytest
 from fleetiq_domain.models.history import FailureEvent, Flight, MaintenanceEvent
@@ -44,7 +43,7 @@ def test_invalid_durations_confirmation_and_immutable_late_history(domain_connec
         occurred_at=now,
         recorded_at=now + timedelta(days=1),
         action="inspection",
-        actor_id=uuid4(),
+        actor_id=ids["user"],
     )
     first = c.scalar(insert(MaintenanceEvent).values(**row).returning(MaintenanceEvent.id))
     with pytest.raises(DBAPIError), c.begin_nested():

@@ -39,6 +39,7 @@ def freeze(module, revision, parent, extra):
     statements += [
         f"GRANT SELECT ON {','.join(table.name for table in tables)} TO fleetiq_app, fleetiq_worker"
     ]
+    statements += getattr(imported, "POST_GRANTS", [])
     target = ROOT / f"infrastructure/database/versions/{revision}.py"
     content = f'"""Frozen {module} schema."""\nfrom alembic import op\nrevision={revision!r}\ndown_revision={parent!r}\nbranch_labels=None\ndepends_on=None\n\ndef upgrade():\n'
     content += "".join(f"    op.execute({statement!r})\n" for statement in statements)

@@ -142,7 +142,7 @@ def test_compatible_reservations_consume_once_and_release_hold(stock_fixture):
     c, ids, _ = stock_fixture
     org, stock = ids["organization"], ids["stock"]
     one, two, three = ids["tasks"]
-    actor = uuid4()
+    actor = ids["user"]
 
     def balance():
         return c.execute(
@@ -263,7 +263,7 @@ def test_concurrent_reservations_and_consumption_cannot_double_debit(stock_fixtu
         results = list(pool.map(allocate, ids["tasks"][:2]))
     reservations = [r for r in results if r is not None]
     assert len(reservations) == 1
-    actor = uuid4()
+    actor = ids["user"]
 
     def consume(_):
         with engine.begin() as connection:

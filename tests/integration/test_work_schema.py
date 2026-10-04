@@ -96,7 +96,7 @@ def test_dependency_cycle_and_missing_procedure_rejected(work_fixture):
 
 def test_authorizations_versions_and_release_prerequisites(work_fixture):
     connection, ids = work_fixture
-    actor = uuid4()
+    actor = ids["user"]
 
     def change(version, target, permissions, scope=None):
         return transition_work(

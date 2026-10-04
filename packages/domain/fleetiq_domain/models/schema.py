@@ -20,7 +20,11 @@ TYPES = {
 }
 
 
-def entity(name, fields, *, refs=None, checks=(), unique=(), primary=None, computed=None):
+def entity(
+    name, fields, *, refs=None, checks=(), unique=(), primary=None, computed=None, identities=()
+):
+    if isinstance(checks, str):
+        raise TypeError("checks must be a sequence of complete SQL expressions")
     columns = []
     if primary is None:
         columns.append(
@@ -47,6 +51,7 @@ def entity(name, fields, *, refs=None, checks=(), unique=(), primary=None, compu
             sa.Column(
                 field,
                 TYPES[kind](),
+                *([sa.Identity(always=True)] if field in identities else []),
                 *(
                     [sa.Computed(computed[field], persisted=True)]
                     if field in (computed or {})

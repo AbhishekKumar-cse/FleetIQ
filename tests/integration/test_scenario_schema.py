@@ -48,7 +48,7 @@ def test_projection_provenance_and_exclusive_counts(domain_connection):
         .values(
             organization_id=ids["organization"],
             snapshot_id=baseline,
-            owner_id=uuid4(),
+            owner_id=ids["user"],
             assumptions={},
             changes={},
             configuration_hash="b" * 64,

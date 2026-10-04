@@ -18,6 +18,7 @@ def domain_connection(isolated_database):
     from fleetiq_domain.models.assets import Aircraft, AircraftType, Fleet, Organization, Site
     from fleetiq_domain.models.components import Component, Installation
     from fleetiq_domain.models.inventory import SparePart
+    from fleetiq_domain.models.operations import User
     from sqlalchemy import insert
 
     engine = create_engine(isolated_database[0])
@@ -26,6 +27,16 @@ def domain_connection(isolated_database):
             ids = {}
             ids["organization"] = connection.scalar(
                 insert(Organization).values(code="DEMO", name="Demo").returning(Organization.id)
+            )
+            ids["user"] = connection.scalar(
+                insert(User)
+                .values(
+                    organization_id=ids["organization"],
+                    subject="fixture",
+                    display_name="Fixture",
+                    password_hash="$argon2id$fixture",
+                )
+                .returning(User.id)
             )
             for key, model in (("site", Site), ("fleet", Fleet), ("type", AircraftType)):
                 values = dict(organization_id=ids["organization"], code="DEMO")

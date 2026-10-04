@@ -8,6 +8,7 @@ from fleetiq_domain.models import (
     fleet,  # noqa: F401
     history,  # noqa: F401
     inventory,  # noqa: F401
+    operations,  # noqa: F401
     predictions,  # noqa: F401
     telemetry,  # noqa: F401
     work,  # noqa: F401
