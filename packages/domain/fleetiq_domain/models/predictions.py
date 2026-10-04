@@ -59,8 +59,14 @@ FeatureSnapshot = entity(
         "track": "text:required",
         "vector": "json:required",
         "quality": "json:required",
+        "source_cutoff": "time:optional",
+        "supersedes_id": "uuid:optional",
     },
-    refs={"component_id": "component", "installation_id": "installation"},
+    refs={
+        "component_id": "component",
+        "installation_id": "installation",
+        "supersedes_id": "feature_snapshot",
+    },
     checks=(
         TRACK,
         "window_start < window_end AND window_end <= as_of",
@@ -91,11 +97,14 @@ Prediction = entity(
         "ood": "bool:required:false",
         "coverage": "text:required",
         "explanation_status": "text:required",
+        "source_cutoff": "time:optional",
+        "supersedes_id": "uuid:optional",
     },
     refs={
         "feature_snapshot_id": "feature_snapshot",
         "component_id": "component",
         "deployment_id": "model_deployment",
+        "supersedes_id": "prediction",
     },
     checks=(
         TRACK,

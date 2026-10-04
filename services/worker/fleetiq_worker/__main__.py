@@ -36,7 +36,7 @@ def execute(engine, lease):
         if lost.is_set():
             return "lease_lost"
         with engine.begin() as c:
-            finish(c, lease, outcome.result, unsupported=outcome.unsupported)
+            finish(c, lease, outcome.result, unsupported=outcome.unsupported, effect=outcome.effect)
         return "unsupported" if outcome.unsupported else "completed"
     except LeaseLost:
         return "lease_lost"

@@ -11,9 +11,21 @@ from fleetiq_domain.models.operations import ImportBatch
 class Outcome:
     result: dict
     unsupported: bool = False
+    effect: object = None
 
 
 def dispatch(c, job):
+    if job["kind"] in {"history.backfill", "current.feature"}:
+        from fleetiq_worker.backfill_handler import revise
+
+        return Outcome(
+            {
+                "status": "unsupported",
+                "reason": "Revisions retained; registered recomputation required",
+            },
+            True,
+            lambda transaction: revise(transaction, job),
+        )
     if job["kind"] != "ingestion.summary":
         return Outcome({"status": "unsupported", "reason": "Handler is not implemented"}, True)
     inputs = job["input"]

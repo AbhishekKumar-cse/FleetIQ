@@ -23,6 +23,7 @@ def freeze(module, revision, parent, extra):
         "fleet",
         "operations",
         "jobs",
+        "backfill",
     ]
     for dependency in order[: order.index(module)]:
         importlib.import_module(f"fleetiq_domain.models.{dependency}")
