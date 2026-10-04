@@ -1,0 +1,28 @@
+version: synthetic-engine-v1
+purpose: fictional illustration; coefficients are not aircraft certification evidence
+time_step_hours: 1
+default_seed: 26249
+regimes:
+  normal: {damage_multiplier: 1.0, workload_multiplier: 1.0, ambient_offset_c: 0.0}
+  degrading: {damage_multiplier: 4.0, workload_multiplier: 1.0, ambient_offset_c: 0.0}
+  ood: {damage_multiplier: 2.0, workload_multiplier: 1.7, ambient_offset_c: 35.0}
+degradation:
+  base_damage_per_hour: 0.0015
+  age_coefficient_per_hour: 0.0005
+  workload_exponent: 2.0
+  heat_coefficient_per_c: 0.01
+  damage_noise_fraction: 0.08
+measurement:
+  temperature_base_c: 70.0
+  temperature_workload_c: 20.0
+  temperature_damage_c: 45.0
+  temperature_noise_c: 0.8
+  pressure_base_kpa: 400.0
+  pressure_damage_kpa: 140.0
+  pressure_workload_kpa: 10.0
+  pressure_noise_kpa: 2.0
+  vibration_base_mm_s: 0.8
+  vibration_workload_mm_s: 0.4
+  vibration_damage_mm_s: 6.0
+  vibration_noise_mm_s: 0.05
+truth_access: evaluator_only
