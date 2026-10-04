@@ -22,6 +22,20 @@ STATES = (
     "closed",
 )
 STATE_CHECK = "state IN (" + ",".join(repr(s) for s in STATES) + ")"
+TRANSITION_PERMISSIONS = {
+    "engineering_review": "technical:approve",
+    "accepted": "technical:approve",
+    "rejected": "technical:approve",
+    "planner_draft": "workorder:draft",
+    "schedule_proposed": "workorder:draft",
+    "schedule_approved": "schedule:approve",
+    "executing": "task:execute",
+    "inspection_pending": "task:execute",
+    "released": "release:record",
+    "held": "release:record",
+    "closed": "release:record",
+}
+
 ProcedureRevision = entity(
     "procedure_revision",
     {
@@ -205,15 +219,7 @@ def transition_work(
         raise ValueError("stale work order version")
     if target not in EDGES.get(row["state"], set()):
         raise ValueError("invalid workflow transition")
-    required = (
-        "technical:approve"
-        if target in {"engineering_review", "accepted", "rejected"}
-        else "release:record"
-        if target in {"released", "held", "closed"}
-        else "task:execute"
-        if target in {"executing", "inspection_pending"}
-        else "schedule:approve"
-    )
+    required = TRANSITION_PERMISSIONS[target]
     if required not in permissions:
         raise PermissionError(required)
     if not reason.strip():

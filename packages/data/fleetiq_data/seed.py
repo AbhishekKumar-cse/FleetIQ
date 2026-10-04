@@ -24,7 +24,7 @@ from fleetiq_domain.models.predictions import PolicyVersion
 from fleetiq_domain.models.telemetry import Sensor, Source
 from fleetiq_domain.models.work import ProcedureRevision
 from pwdlib import PasswordHash
-from sqlalchemy import create_engine, select
+from sqlalchemy import create_engine, select, update
 from sqlalchemy.dialects.postgresql import insert
 
 from fleetiq_data.fetch import ROOT
@@ -139,7 +139,7 @@ def seed_database(connection, input_dir, *, demo_only=False, password_hash=None)
         ensure(
             connection,
             Role,
-            dict(id=role, organization_id=org, code="admin", permissions=["identity:manage"]),
+            dict(id=role, organization_id=org, code="admin", permissions=["users:manage"]),
         )
         ensure(
             connection,
@@ -458,6 +458,16 @@ def demo_credentials(settings):
 def grant_demo_import(connection):
     """Trusted provisioning only: explicit local demo import rights, no sign-off rights."""
     org, user, role = demo_id("organization"), demo_id("user"), demo_id("import-role")
+    # Correct only the previous known demo permission label, never custom assignments.
+    connection.execute(
+        update(Role)
+        .where(
+            Role.id == demo_id("role"),
+            Role.organization_id == org,
+            Role.permissions == ["identity:manage"],
+        )
+        .values(permissions=["users:manage"])
+    )
     ensure(
         connection,
         Role,

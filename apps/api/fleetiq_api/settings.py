@@ -34,7 +34,7 @@ class Settings(BaseSettings):
     auth_cookie_secure: bool | None = None
     inference_workload_token: SecretStr = Field(min_length=32)
     allowed_origins: list[str]
-    worker_concurrency: int = Field(default=1, ge=1, le=16)
+    worker_concurrency: int = Field(default=2, ge=1, le=2)
     inference_timeout_seconds: float = Field(default=10, gt=0, le=120)
     source_track: Literal["cmapss_benchmark", "synthetic_engine_demo"]
     replay_source: Path

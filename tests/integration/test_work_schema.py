@@ -117,8 +117,8 @@ def test_authorizations_versions_and_release_prerequisites(work_fixture):
     with pytest.raises(ValueError, match="stale"):
         change(0, "accepted", {"technical:approve"}, {"procedure": str(ids["procedure"])})
     change(1, "accepted", {"technical:approve"}, {"procedure": str(ids["procedure"])})
-    change(2, "planner_draft", {"schedule:approve"})
-    change(3, "schedule_proposed", {"schedule:approve"})
+    change(2, "planner_draft", {"workorder:draft"})
+    change(3, "schedule_proposed", {"workorder:draft"})
     with pytest.raises(ValueError, match="separate plan"):
         change(4, "schedule_approved", {"schedule:approve"})
     change(4, "schedule_approved", {"schedule:approve"}, {"plan": "demo-plan-v1"})

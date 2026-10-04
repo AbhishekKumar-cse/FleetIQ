@@ -118,6 +118,8 @@ def visible_scope(c, principal, permission, organization_id, scope_kind, scope_i
             if scope_id is None:
                 return False
             require(c, principal, permission, aircraft_id=scope_id)
+        elif scope_kind == "owner" and scope_id == principal.user_id:
+            require(c, principal, permission)
         elif scope_kind == "site":
             if scope_id is None:
                 return False

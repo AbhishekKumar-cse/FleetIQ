@@ -24,6 +24,7 @@ build-backend = "hatchling.build"
 
 [project.scripts]
 fleetiq-migrate = "fleetiq_domain.migrations:main"
+fleetiq-worker = "fleetiq_worker.__main__:main"
 
 [tool.hatch.build.targets.wheel]
 packages = [

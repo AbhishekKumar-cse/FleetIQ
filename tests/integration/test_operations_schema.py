@@ -23,7 +23,7 @@ def test_job_lease_bounds_and_atomic_outbox_audit(domain_connection):
     when = datetime.now(UTC)
     for changes in (
         {"attempt": -1},
-        {"attempt": 4},
+        {"attempt": 7},
         {"max_attempts": 11},
         {"state": "running"},
         {"lease_owner": "worker"},

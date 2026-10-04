@@ -14,7 +14,7 @@ from fleetiq_domain.authorization import (
 )
 from fleetiq_domain.models.assets import Aircraft
 from fleetiq_domain.models.operations import AuditEvent, Role, RoleAssignment, User
-from fleetiq_domain.models.work import Recommendation, WorkOrder
+from fleetiq_domain.models.work import Approval, Recommendation, WorkOrder
 
 pytestmark = pytest.mark.integration
 
@@ -51,6 +51,7 @@ def test_scope_and_revocation(domain_connection):
             require(c, p2, "fleet:read", aircraft_id=aircraft)
     assert visible_scope(c, p, "fleet:read", ids["organization"], "aircraft", ids["aircraft"])
     assert not visible_scope(c, p, "fleet:read", ids["organization"], "organization", None)
+    assert not visible_scope(c, p, "fleet:read", ids["organization"], "owner", ids["user"])
     c.execute(sa.update(RoleAssignment).where(RoleAssignment.id == assignment).values(active=False))
     with pytest.raises(Forbidden):
         require(c, p, "fleet:read", aircraft_id=ids["aircraft"])
@@ -128,3 +129,68 @@ def test_audit_failure_rolls_back_command(domain_connection):
         execute=execute,
     )
     assert c.scalar(sa.select(sa.func.count()).select_from(AuditEvent)) == 1
+
+
+def test_positive_review_and_draft_have_separate_approval_rights(domain_connection):
+    c, ids = domain_connection
+    p = Principal(ids["organization"], ids["user"])
+    grant(c, ids, ["technical:approve"])
+    recommendation = c.scalar(
+        sa.insert(Recommendation)
+        .values(
+            organization_id=ids["organization"],
+            aircraft_id=ids["aircraft"],
+            component_id=ids["component"],
+            policy_version="fixture",
+            urgency="low",
+            rationale={},
+            state="accepted",
+        )
+        .returning(Recommendation.id)
+    )
+    work = c.scalar(
+        sa.insert(WorkOrder)
+        .values(
+            organization_id=ids["organization"],
+            aircraft_id=ids["aircraft"],
+            component_id=ids["component"],
+            recommendation_id=recommendation,
+        )
+        .returning(WorkOrder.id)
+    )
+    transition_work_authorized(c, p, work, 0, "engineering_review", reason="Review")
+    transition_work_authorized(
+        c,
+        p,
+        work,
+        1,
+        "accepted",
+        reason="Technical acceptance",
+        approval_scope={"technical": "fixture"},
+    )
+    grant(c, ids, ["workorder:draft"])
+    transition_work_authorized(c, p, work, 2, "planner_draft", reason="Draft plan")
+    transition_work_authorized(c, p, work, 3, "schedule_proposed", reason="Propose plan")
+    with pytest.raises(Forbidden):
+        transition_work_authorized(
+            c,
+            p,
+            work,
+            4,
+            "schedule_approved",
+            reason="No approval right",
+            approval_scope={"plan": "fixture"},
+        )
+    assert c.scalar(sa.select(WorkOrder.version).where(WorkOrder.id == work)) == 4
+    grant(c, ids, ["schedule:approve"])
+    transition_work_authorized(
+        c,
+        p,
+        work,
+        4,
+        "schedule_approved",
+        reason="Approve plan",
+        approval_scope={"plan": "fixture"},
+    )
+    assert c.scalar(sa.select(sa.func.count()).select_from(AuditEvent)) == 5
+    assert c.scalar(sa.select(sa.func.count()).select_from(Approval)) == 5

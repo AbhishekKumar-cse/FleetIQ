@@ -111,7 +111,8 @@ Job = entity(
         "idempotency_key": "text:required",
         "state": "text:required:'pending'",
         "attempt": "int:required:0",
-        "max_attempts": "int:required:3",
+        "max_attempts": "int:required:6",
+        "available_at": "time:required:now()",
         "lease_owner": "text:optional",
         "lease_expires_at": "time:optional",
         "progress": "float:required:0",
@@ -121,12 +122,12 @@ Job = entity(
     refs={"owner_id": "app_user"},
     checks=(
         "input_hash ~ '^[0-9a-f]{64}$'",
-        "state IN ('pending','running','completed','failed','cancelled')",
-        "max_attempts BETWEEN 1 AND 10 AND attempt BETWEEN 0 AND max_attempts",
+        "state IN ('pending','running','completed','failed','cancelled','dead_letter','unsupported')",
+        "max_attempts BETWEEN 1 AND 6 AND attempt BETWEEN 0 AND max_attempts",
         "(state='running' AND lease_owner IS NOT NULL AND lease_expires_at IS NOT NULL AND attempt>0) OR "
         "(state<>'running' AND lease_owner IS NULL AND lease_expires_at IS NULL)",
         "progress>=0 AND progress<=1",
-        "state<>'failed' OR error IS NOT NULL",
+        "state NOT IN ('failed','dead_letter','unsupported') OR error IS NOT NULL",
         "state<>'completed' OR (result IS NOT NULL AND progress=1)",
     ),
     unique=(("kind", "input_hash", "idempotency_key"),),
@@ -231,6 +232,7 @@ rate_table = sa.Table(
 )
 AuthRateLimit = type("AuthRateLimit", (), {})
 Base.registry.map_imperatively(AuthRateLimit, rate_table)
+sa.Index("ix_job_ready", Job.state, Job.available_at, Job.lease_expires_at)
 sa.Index("ix_job_pending_lease", Job.organization_id, Job.state, Job.lease_expires_at)
 sa.Index("ix_outbox_org_sequence", EventOutbox.organization_id, EventOutbox.id)
 sa.Index(

@@ -4,7 +4,7 @@ import sqlalchemy as sa
 
 from fleetiq_domain.authorization import Forbidden, require
 from fleetiq_domain.models.operations import AuditEvent
-from fleetiq_domain.models.work import WorkOrder, transition_work
+from fleetiq_domain.models.work import TRANSITION_PERMISSIONS, WorkOrder, transition_work
 
 
 def audited_command(
@@ -44,19 +44,7 @@ def audited_command(
 def transition_work_authorized(
     c, principal, work_id, expected_version, target, *, reason, approval_scope=None
 ):
-    permission = {
-        "engineering_review": "workorder:draft",
-        "accepted": "technical:approve",
-        "rejected": "technical:approve",
-        "planner_draft": "workorder:draft",
-        "schedule_proposed": "workorder:draft",
-        "schedule_approved": "schedule:approve",
-        "executing": "task:execute",
-        "inspection_pending": "task:execute",
-        "released": "release:record",
-        "held": "release:record",
-        "closed": "release:record",
-    }.get(target)
+    permission = TRANSITION_PERMISSIONS.get(target)
     if permission is None:
         raise Forbidden("Access denied")
     row = (
