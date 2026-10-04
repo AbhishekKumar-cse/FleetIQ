@@ -107,6 +107,20 @@ def load_development(cfg, *, root=ROOT, roles=("fit", "tune")):
         preprocessing_hash=fit.content_hash,
         schema_hash=fit.schema_hash,
         anchors=anchors,
+        vectors={
+            role: hashlib.sha256(
+                np.ascontiguousarray(part[list(fit.names)].to_numpy(), dtype="<f8").tobytes()
+            ).hexdigest()
+            for role, part in data.items()
+        },
+        labels={
+            role: content_hash(
+                part[["stream", "cycle", "event_cycle", "failure_within_horizon"]].to_dict(
+                    "records"
+                )
+            )
+            for role, part in data.items()
+        },
         groups={role: splits["groups"][role] for role in roles},
         names=list(fit.names),
         official_test_accessed=False,
@@ -284,7 +298,7 @@ def select_threshold(rows, scores, budget):
     return max(ranked, key=lambda item: item[0])[1]
 
 
-def engine_bootstrap(rows, scores, threshold, *, seed, repetitions):
+def engine_bootstrap(rows, scores, threshold, *, seed, repetitions, endpoint_only=False):
     engines = sorted(rows.stream.unique())
     if len(engines) < 2:
         return dict(supported=False, reason="insufficient_independent_engines")
@@ -299,7 +313,14 @@ def engine_bootstrap(rows, scores, threshold, *, seed, repetitions):
             part["stream"] = f"bootstrap:{draw}"
             parts.append(part)
             sampled_scores.extend(np.asarray(scores)[index])
-        results.append(metrics(pd.concat(parts, ignore_index=True), sampled_scores, threshold))
+        results.append(
+            metrics(
+                pd.concat(parts, ignore_index=True),
+                sampled_scores,
+                threshold,
+                exposure=0 if endpoint_only else None,
+            )
+        )
     intervals = {}
     for key in (
         "average_precision",
