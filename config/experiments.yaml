@@ -38,6 +38,15 @@ training:
   class_weight: balanced
   logistic: {C: 1.0, max_iter: 2000, tol: 0.00001}
   random_forest: {n_estimators: 64, max_depth: 6, min_samples_leaf: 10, max_features: sqrt}
+  xgboost:
+    n_estimators: 180
+    early_stopping_rounds: 20
+    max_depth: [3, 5]
+    learning_rate: [0.05, 0.10]
+  selection:
+    role: tune_only
+    minimum_complex_model_ap_gain: 0.005
+    primary: xgboost_subject_to_measured_gain
 evaluation:
   tune_anchor: native_cycles_from_30_every_10_excluding_terminal
   minimum_cycle: 30

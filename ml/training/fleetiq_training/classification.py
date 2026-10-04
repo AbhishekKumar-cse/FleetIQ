@@ -413,4 +413,8 @@ def train(cfg, output, *, model="logistic", track="cmapss_benchmark"):
         from fleetiq_training.random_forest import record_comparison
 
         record_comparison()
+    if model == "xgboost":
+        from fleetiq_training.xgb_failure import record_selection
+
+        record_selection(cfg)
     return manifest, report
