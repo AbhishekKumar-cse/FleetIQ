@@ -37,6 +37,7 @@ training:
   threads: 2
   class_weight: balanced
   logistic: {C: 1.0, max_iter: 2000, tol: 0.00001}
+  random_forest: {n_estimators: 64, max_depth: 6, min_samples_leaf: 10, max_features: sqrt}
 evaluation:
   tune_anchor: native_cycles_from_30_every_10_excluding_terminal
   minimum_cycle: 30

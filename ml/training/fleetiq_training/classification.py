@@ -151,6 +151,9 @@ def predict_controlled(artifact, x):
         z = (x - np.array(artifact["center"])) / np.array(artifact["scale"])
         return sigmoid(z @ np.array(artifact["coefficients"]) + artifact["intercept"])
     if artifact["model"] == "random_forest":
+        x = x.astype(np.float32)
+        if not np.isfinite(x).all():
+            raise ValueError("Forest input exceeds native float32 range")
         result = np.zeros(len(x))
         for tree in artifact["trees"]:
             left, right = np.array(tree["left"]), np.array(tree["right"])
@@ -406,4 +409,8 @@ def train(cfg, output, *, model="logistic", track="cmapss_benchmark"):
         calibration_not_used_for_selection=True,
     )
     write_json(ROOT / f"docs/exports/{model}_tuning.json", report)
+    if model == "random_forest":
+        from fleetiq_training.random_forest import record_comparison
+
+        record_comparison()
     return manifest, report
