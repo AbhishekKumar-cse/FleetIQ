@@ -1,0 +1,11 @@
+{
+  "version": "features-v1",
+  "interval": "(window_start, as_of]",
+  "statistics": ["count", "mean", "variance", "std", "median", "min", "max", "rms"],
+  "eligible_quality": ["valid", "flagged"],
+  "include_imputed": false,
+  "tracks": {
+    "synthetic_engine_demo": {"clock": "utc", "time_unit": "seconds", "channels": ["temperature_c", "oil_pressure_kpa", "vibration_mm_s"], "units": ["degC", "kPa_absolute", "mm/s"]},
+    "cmapss_benchmark": {"clock": "cycle", "time_unit": "cycles", "channels": ["sensor_1", "sensor_2", "sensor_3", "sensor_4", "sensor_5", "sensor_6", "sensor_7", "sensor_8", "sensor_9", "sensor_10", "sensor_11", "sensor_12", "sensor_13", "sensor_14", "sensor_15", "sensor_16", "sensor_17", "sensor_18", "sensor_19", "sensor_20", "sensor_21"], "units": "source-native"}
+  }
+}
