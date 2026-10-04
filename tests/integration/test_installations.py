@@ -4,6 +4,7 @@ from uuid import uuid4
 import pytest
 from fleetiq_domain.models.assets import Aircraft, AircraftType, Fleet, Organization, Site
 from fleetiq_domain.models.components import Component, Engine, Installation
+from fleetiq_domain.models.inventory import SparePart
 from sqlalchemy import create_engine, insert
 from sqlalchemy.exc import IntegrityError
 
@@ -32,10 +33,15 @@ def test_replacement_intervals_and_engine_identity(isolated_database):
                     fleet_id=fleet,
                 ),
             )
+            part = c.scalar(
+                insert(SparePart)
+                .values(organization_id=org, code="DEMO", kind="engine", serialized=True)
+                .returning(SparePart.id)
+            )
             for key in (one, two):
                 c.execute(
                     insert(Component),
-                    dict(id=key, organization_id=org, serial=str(key), kind="engine"),
+                    dict(id=key, organization_id=org, serial=str(key), kind="engine", part_id=part),
                 )
                 c.execute(
                     insert(Engine), dict(component_id=key, organization_id=org, engine_type="DEMO")

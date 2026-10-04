@@ -17,6 +17,7 @@ def domain_connection(isolated_database):
 
     from fleetiq_domain.models.assets import Aircraft, AircraftType, Fleet, Organization, Site
     from fleetiq_domain.models.components import Component, Installation
+    from fleetiq_domain.models.inventory import SparePart
     from sqlalchemy import insert
 
     engine = create_engine(isolated_database[0])
@@ -42,9 +43,21 @@ def domain_connection(isolated_database):
                 )
                 .returning(Aircraft.id)
             )
+            ids["part"] = connection.scalar(
+                insert(SparePart)
+                .values(
+                    organization_id=ids["organization"], code="DEMO", kind="engine", serialized=True
+                )
+                .returning(SparePart.id)
+            )
             ids["component"] = connection.scalar(
                 insert(Component)
-                .values(organization_id=ids["organization"], serial="DEMO", kind="engine")
+                .values(
+                    organization_id=ids["organization"],
+                    serial="DEMO",
+                    kind="engine",
+                    part_id=ids["part"],
+                )
                 .returning(Component.id)
             )
             ids["installation"] = connection.scalar(

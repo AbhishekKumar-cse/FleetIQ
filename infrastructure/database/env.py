@@ -6,6 +6,7 @@ from fleetiq_domain.models import (
     assets,  # noqa: F401 - register ORM metadata
     components,  # noqa: F401
     history,  # noqa: F401
+    inventory,  # noqa: F401
     telemetry,  # noqa: F401
     work,  # noqa: F401
 )
