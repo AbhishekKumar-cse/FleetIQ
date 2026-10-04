@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import ValidationError
 
 from fleetiq_api.routers.auth import router
+from fleetiq_api.routers.ingestion import router as ingestion_router
 from fleetiq_api.settings import Settings
 
 
@@ -31,9 +32,10 @@ def create_app(auth_service=None):
         allow_origins=origins,
         allow_credentials=True,
         allow_methods=["GET", "POST"],
-        allow_headers=["Content-Type", "X-CSRF-Token", "Authorization"],
+        allow_headers=["Content-Type", "X-CSRF-Token", "Authorization", "Idempotency-Key"],
     )
     application.include_router(router)
+    application.include_router(ingestion_router)
     application.add_api_route("/health/live", live, methods=["GET"])
     return application
 

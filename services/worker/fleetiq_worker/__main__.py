@@ -31,8 +31,13 @@ def execute(engine, lease):
     thread = threading.Thread(target=renew, name="lease-heartbeat", daemon=True)
     thread.start()
     try:
-        with engine.connect() as c:
-            outcome = dispatch(c, lease.job)
+        if lease.job["kind"] == "dataset.import":
+            from fleetiq_worker.dataset_handler import import_dataset
+
+            outcome = import_dataset(engine, lease)
+        else:
+            with engine.connect() as c:
+                outcome = dispatch(c, lease.job)
         if lost.is_set():
             return "lease_lost"
         with engine.begin() as c:

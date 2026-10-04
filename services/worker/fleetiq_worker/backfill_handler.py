@@ -13,10 +13,13 @@ def revise(c, job):
     org = job["organization_id"]
     request_id = UUID(job["input"]["request_id"])
     if job["kind"] == "current.feature":
-        request_id = c.scalar(
-            sa.select(AssessmentCursor.request_id).where(
-                AssessmentCursor.organization_id == org, AssessmentCursor.job_id == job["id"]
+        request_id = (
+            c.scalar(
+                sa.select(AssessmentCursor.request_id).where(
+                    AssessmentCursor.organization_id == org, AssessmentCursor.job_id == job["id"]
+                )
             )
+            or request_id
         )
     request = (
         c.execute(

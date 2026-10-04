@@ -313,6 +313,7 @@ def import_file(
     batch_size=5000,
     kind="telemetry",
     before_commit=None,
+    enqueue_followups=True,
 ):
     if not 1 <= batch_size <= 5000 or kind not in {"telemetry", "configuration", "inventory"}:
         raise ValueError("Invalid batch size or kind")
@@ -452,19 +453,20 @@ def import_file(
                 )
             )
             _audit(c, principal, batch["id"], "progress", summary)
-            enqueue_job(
-                c,
-                dict(
-                    organization_id=principal.organization_id,
-                    owner_id=principal.user_id,
-                    kind="ingestion.summary",
-                    input_hash=content_hash({"batch": batch["id"], "stop": stop}),
-                    input={"batch_id": str(batch["id"]), "through_row": stop},
-                    idempotency_key=f"{batch['id']}:{stop}",
-                ),
-                actor_id=principal.user_id,
-                reason="Committed validated import chunk",
-            )
+            if enqueue_followups:
+                enqueue_job(
+                    c,
+                    dict(
+                        organization_id=principal.organization_id,
+                        owner_id=principal.user_id,
+                        kind="ingestion.summary",
+                        input_hash=content_hash({"batch": batch["id"], "stop": stop}),
+                        input={"batch_id": str(batch["id"]), "through_row": stop},
+                        idempotency_key=f"{batch['id']}:{stop}",
+                    ),
+                    actor_id=principal.user_id,
+                    reason="Committed validated import chunk",
+                )
             if before_commit:
                 before_commit(c, summary)
             if stop == len(rows):

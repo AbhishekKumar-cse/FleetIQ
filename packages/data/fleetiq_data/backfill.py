@@ -17,7 +17,7 @@ def urgent_notification_allowed(*, historical, assessed_at, source_cutoff, now):
     return (
         not historical
         and timedelta(0) <= age <= timedelta(seconds=120)
-        and utc(source_cutoff) <= utc(now)
+        and utc(assessed_at) <= utc(source_cutoff) <= utc(now)
     )
 
 
