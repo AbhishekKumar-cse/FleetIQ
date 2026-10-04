@@ -5,5 +5,9 @@
   "technical_join": "occurred_at <= as_of AND recorded_at <= as_of",
   "unknown_manufacture_date": "excluded",
   "usage": "installation_cumulative_observed_counters",
-  "unknown_category": "explicit_indicator"
+  "unknown_category": "explicit_indicator",
+  "short_history_strategy": "partial_causal_window_with_count_and_indicator_in_train_and_serve",
+  "imputer": "train_only_median_empty_column_zero_with_retained_mask",
+  "minimum_coverage": 0.95,
+  "synthetic_cadence_seconds": 3600
 }
