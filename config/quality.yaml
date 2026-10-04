@@ -1,0 +1,39 @@
+version: quality-v1
+provenance: fictional synthetic-engine-v1 demonstration bounds; not aircraft maintenance limits
+temporal:
+  future_skew_seconds: 30
+  replay_lateness_seconds: 120
+  minimum_coverage: 0.95
+profiles:
+  synthetic_engine:
+    temperature_c:
+      unit: degC
+      essential: true
+      physical: [-80, 600]
+      typical: [-40, 150]
+      max_fill_seconds: 60
+      spike_delta: 20
+    oil_pressure_kpa:
+      unit: kPa
+      pressure_kind: absolute
+      essential: true
+      physical: [0, 2000]
+      typical: [200, 600]
+      max_fill_seconds: 60
+      spike_delta: 100
+    vibration_mm_s:
+      unit: mm/s
+      essential: true
+      physical: [0, 100]
+      typical: [0, 10]
+      max_fill_seconds: 60
+      spike_delta: 10
+  synthetic_gauge_fixture:
+    pressure:
+      unit: kPa
+      pressure_kind: gauge
+      essential: true
+      physical: [-100, 2000]
+      typical: [-50, 600]
+      max_fill_seconds: 0
+      spike_delta: 100
