@@ -1,0 +1,24 @@
+version: failure-improvement-v1
+seed: 26249
+threads: 2
+development_subsets: [FD001, FD003]
+partition_per_subset: {fit: 60, tune: 20, calibration: 20}
+fit_stride_cycles: 5
+minimum_cycle: 30
+horizon_cycles: 30
+endpoint_draws_per_engine: 5
+cross_validation_folds: 3
+threshold: {minimum_precision: 0.85, objective: f2}
+aspiration: {precision: 0.90, recall: 0.90, f1: 0.90}
+calibration_minimum_positive_engines: 20
+calibration_minimum_negative_engines: 20
+final_subset: FD003
+final_anchor: last_observed_cycle
+final_repetitions: 200
+probability_deployment_enabled: false
+models:
+  baseline_xgboost: {depth: 3, iterations: 250}
+  xgboost: [{depth: 3, iterations: 300}, {depth: 5, iterations: 300}]
+  catboost: [{depth: 4, iterations: 300}, {depth: 6, iterations: 300}]
+  lightgbm: [{leaves: 15, iterations: 300}, {leaves: 31, iterations: 300}]
+  mlp: [{hidden: [64, 32], epochs: 70}, {hidden: [32], epochs: 70}]
