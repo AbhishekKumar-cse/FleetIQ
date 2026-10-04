@@ -40,6 +40,7 @@ def upgrade():
 
 def downgrade():
     op.execute("DROP TABLE sensor_reading")
+    op.execute("DROP FUNCTION fleetiq_validate_reading()")
     op.execute("DROP TABLE source_event_receipt")
     op.execute("DROP TABLE sensor")
     op.execute("DROP TABLE source")

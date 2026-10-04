@@ -1,5 +1,7 @@
 """Append-only occurred/recorded evidence with explicit corrections and interventions."""
 
+from sqlalchemy import Index
+
 from fleetiq_domain.models.schema import entity
 
 Flight = entity(
@@ -83,6 +85,18 @@ Inspection = entity(
     },
     refs={"maintenance_event_id": "maintenance_event"},
     checks=("result IN ('pass','fail','unknown')",),
+)
+Index(
+    "ix_failure_component_time",
+    FailureEvent.organization_id,
+    FailureEvent.component_id,
+    FailureEvent.observed_at,
+)
+Index(
+    "ix_maintenance_aircraft_time",
+    MaintenanceEvent.organization_id,
+    MaintenanceEvent.aircraft_id,
+    MaintenanceEvent.occurred_at,
 )
 EXTRA = [
     """CREATE OR REPLACE FUNCTION fleetiq_immutable_evidence() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN

@@ -59,3 +59,4 @@ def downgrade():
     op.execute("DROP TABLE maintenance_event")
     op.execute("DROP TABLE flight")
     op.execute("DROP TABLE failure_event")
+    op.execute("DROP FUNCTION fleetiq_immutable_evidence()")

@@ -3,7 +3,7 @@
 import hashlib
 import json
 
-from sqlalchemy import ForeignKeyConstraint, insert, select
+from sqlalchemy import ForeignKeyConstraint, Index, insert, select
 
 from fleetiq_domain.models.schema import entity
 
@@ -77,6 +77,12 @@ SensorReading.__table__.append_constraint(
         ["sensor.organization_id", "sensor.id", "sensor.source_id"],
         name="fk_reading_sensor_source",
     )
+)
+Index(
+    "ix_reading_org_sensor_time",
+    SensorReading.organization_id,
+    SensorReading.sensor_id,
+    SensorReading.observed_at,
 )
 EXTRA = [
     "SELECT create_hypertable('sensor_reading', by_range('observed_at'), create_default_indexes => false)",

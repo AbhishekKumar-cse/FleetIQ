@@ -28,8 +28,12 @@ def freeze(module, revision, parent, extra):
     target = ROOT / f"infrastructure/database/versions/{revision}.py"
     content = f'"""Frozen {module} schema."""\nfrom alembic import op\nrevision={revision!r}\ndown_revision={parent!r}\nbranch_labels=None\ndepends_on=None\n\ndef upgrade():\n'
     content += "".join(f"    op.execute({statement!r})\n" for statement in statements)
-    content += "\ndef downgrade():\n" + "".join(
-        f'    op.execute("DROP TABLE {table.name}")\n' for table in reversed(tables)
+    content += (
+        "\ndef downgrade():\n"
+        + "".join(
+            f"    op.execute({statement!r})\n" for statement in getattr(imported, "DOWN_EXTRA", [])
+        )
+        + "".join(f'    op.execute("DROP TABLE {table.name}")\n' for table in reversed(tables))
     )
     with target.open("x") as handle:
         handle.write(content)

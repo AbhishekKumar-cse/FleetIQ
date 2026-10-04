@@ -2,10 +2,13 @@
 
 from alembic import context
 from fleetiq_domain.db import Base, guard_test_url
-from fleetiq_domain.models import assets  # noqa: F401 - register ORM metadata
-from fleetiq_domain.models import components  # noqa: F401
-from fleetiq_domain.models import telemetry  # noqa: F401
-from fleetiq_domain.models import history  # noqa: F401
+from fleetiq_domain.models import (
+    assets,  # noqa: F401 - register ORM metadata
+    components,  # noqa: F401
+    history,  # noqa: F401
+    telemetry,  # noqa: F401
+    work,  # noqa: F401
+)
 from sqlalchemy import create_engine
 from sqlalchemy.engine import make_url
 from sqlalchemy.pool import NullPool
