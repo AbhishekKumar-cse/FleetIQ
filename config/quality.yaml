@@ -4,6 +4,8 @@ temporal:
   future_skew_seconds: 30
   replay_lateness_seconds: 120
   minimum_coverage: 0.95
+  replay_late_action: historical_backfill_required
+  coverage_basis: observed_duration_without_imputation
 profiles:
   synthetic_engine:
     temperature_c:
