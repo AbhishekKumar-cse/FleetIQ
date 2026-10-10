@@ -8,11 +8,11 @@ from fleetiq_training.classification import experiment, train
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--task", required=True, choices=["failure", "anomaly"])
+    parser.add_argument("--task", required=True, choices=["failure", "anomaly", "rul"])
     parser.add_argument(
         "--model",
         required=True,
-        choices=["logistic", "random_forest", "xgboost", "isolation_forest"],
+        choices=["logistic", "random_forest", "xgboost", "isolation_forest", "ridge"],
     )
     parser.add_argument("--track", required=True)
     parser.add_argument("--config", required=True, type=Path)
@@ -27,6 +27,14 @@ def main():
 
         report = train_anomaly(experiment(args.config), args.output)
         print(report["model"], report["threshold"], report["tune"])
+        return
+    if args.task == "rul":
+        if args.model != "ridge" or args.track != "cmapss_benchmark":
+            raise ValueError("RUL currently requires ridge on cmapss_benchmark")
+        from fleetiq_training.rul_baseline import train_baselines
+
+        report = train_baselines(experiment(args.config), args.output)
+        print(report["chosen"], report["tune"])
         return
     if args.model == "isolation_forest":
         raise ValueError("Isolation Forest is a separate anomaly task")

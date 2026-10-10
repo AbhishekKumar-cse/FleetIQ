@@ -30,6 +30,20 @@ roles:
   final_future: inventory_only_outcomes_inaccessible_to_selection
   nasa_official_test: evaluator_only_not_opened
 synthetic_rul: unsupported_censoring_and_intervention
+rul_training:
+  version: native-cycle-rul-v1
+  subset: FD001
+  target: terminal_cycle_minus_observed_cycle
+  life_unit: cycles
+  early_life_cap: null
+  minimum_cycle: 30
+  anchors: every_10_observed_cycles_from_30_excluding_terminal
+  ridge_alphas: [1.0, 10.0, 100.0]
+  engine_weighting: equal_engine_weight_within_role
+  display_policy: nonnegative_prediction_raw_metrics_retained
+  xgboost: {depths: [3, 5], iterations: [150, 300], learning_rate: 0.05}
+  minimum_complex_model_mae_gain_cycles: 1.0
+  intervals: {alpha: 0.1, aggregation: maximum_absolute_residual_per_engine}
 anomaly_training:
   version: synthetic-normal-residual-v1
   healthy_definition: controlled_zero_damage_no_quality_fault_fixture
