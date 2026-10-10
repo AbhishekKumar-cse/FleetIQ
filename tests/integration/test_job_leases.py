@@ -17,6 +17,7 @@ from fleetiq_worker import __main__ as runner
 from fleetiq_worker.handlers import Outcome
 from fleetiq_worker.jobs import LeaseLost, claim, fail, finish, heartbeat
 from sqlalchemy.engine import make_url
+from sqlalchemy.exc import DBAPIError
 
 pytestmark = pytest.mark.integration
 
@@ -183,7 +184,18 @@ def test_effect_and_result_rollback_and_unique_completion(workers):
             )
             == 1
         )
-        assert not c.scalar(sa.text("SELECT has_table_privilege(current_user,'job','INSERT')"))
+        assert c.scalar(sa.text("SELECT has_table_privilege(current_user,'job','INSERT')"))
+        with pytest.raises(DBAPIError, match="only prediction explanations"), c.begin_nested():
+            c.execute(
+                sa.insert(Job).values(
+                    organization_id=org,
+                    owner_id=user,
+                    kind="fixture.forbidden",
+                    input_hash="a" * 64,
+                    input={},
+                    idempotency_key="forbidden-worker-enqueue",
+                )
+            )
         assert not c.scalar(
             sa.text("SELECT has_table_privilege(current_user,'job_result','UPDATE')")
         )
