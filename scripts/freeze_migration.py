@@ -25,6 +25,7 @@ def freeze(module, revision, parent, extra):
         "jobs",
         "backfill",
         "ingestion",
+        "twin",
     ]
     for dependency in order[: order.index(module)]:
         importlib.import_module(f"fleetiq_domain.models.{dependency}")
