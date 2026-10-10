@@ -30,6 +30,19 @@ roles:
   final_future: inventory_only_outcomes_inaccessible_to_selection
   nasa_official_test: evaluator_only_not_opened
 synthetic_rul: unsupported_censoring_and_intervention
+anomaly_training:
+  version: synthetic-normal-residual-v1
+  healthy_definition: controlled_zero_damage_no_quality_fault_fixture
+  fit_engines: 24
+  tune_engines_per_class: 12
+  evaluation_engines_per_class: 12
+  hours: 48
+  rolling_window: 5
+  n_estimators: 100
+  max_samples: 256
+  false_alert_budget_per_1000_windows: 5
+  score_semantics: training_normal_empirical_percentile_not_probability
+  seed_offsets: {fit: 0, tune: 10000, evaluation: 20000}
 synthetic_history_minimum: 3
 benchmark_history_minimum: 30
 training:
