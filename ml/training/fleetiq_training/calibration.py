@@ -22,7 +22,15 @@ from fleetiq_training.classification import (
 
 
 def fit_sigmoid(
-    scores, rows, *, fit_engines, tune_engines, calibration_engines, minimum_events, seed
+    scores,
+    rows,
+    *,
+    fit_engines,
+    tune_engines,
+    calibration_engines,
+    minimum_events,
+    seed,
+    anchor_column="cycle",
 ):
     fit_set, tune_set, cal_set = set(fit_engines), set(tune_engines), set(calibration_engines)
     if fit_set & tune_set or fit_set & cal_set or tune_set & cal_set or set(rows.stream) - cal_set:
@@ -50,7 +58,7 @@ def fit_sigmoid(
         calibration_engines=sorted(cal_set),
         engine_hash=content_hash(sorted(cal_set)),
         label_hash=content_hash(
-            rows[["stream", "cycle", "failure_within_horizon"]].to_dict("records")
+            rows[["stream", anchor_column, "failure_within_horizon"]].to_dict("records")
         ),
         score_hash=content_hash(scores.tolist()),
     )

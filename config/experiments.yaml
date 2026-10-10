@@ -30,6 +30,24 @@ roles:
   final_future: inventory_only_outcomes_inaccessible_to_selection
   nasa_official_test: evaluator_only_not_opened
 synthetic_rul: unsupported_censoring_and_intervention
+synthetic_hour_training:
+  version: synthetic-hours-experiment-v1
+  track: synthetic_sensor_model
+  horizon_hours: 24
+  life_unit: operating_hours
+  hours: 240
+  minimum_hour: 12
+  stride_hours: 6
+  xgboost_depths: [3, 5]
+  healthy_seed_offset: 900000
+  false_alert_budget_per_1000_hours: 5
+  probability_display_enabled: false
+  interval_display_enabled: false
+  roles:
+    fit: {engines: 96, seed_offset: 100000, installed_at: '2026-01-01T00:00:00+00:00'}
+    tune: {engines: 48, seed_offset: 200000, installed_at: '2026-03-01T00:00:00+00:00'}
+    calibration: {engines: 64, seed_offset: 300000, installed_at: '2026-06-01T00:00:00+00:00'}
+    test: {engines: 64, seed_offset: 400000, installed_at: '2026-08-01T00:00:00+00:00'}
 rul_training:
   version: native-cycle-rul-v1
   subset: FD001

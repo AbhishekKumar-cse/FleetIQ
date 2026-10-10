@@ -24,23 +24,30 @@ def calibrate_engine_intervals(
     calibration_engines,
     alpha=0.1,
     minimum_engines=20,
+    life_unit="cycles",
+    scope=SCOPE,
 ):
     fit, tune, calibration = set(fit_engines), set(tune_engines), set(calibration_engines)
     if fit & tune or fit & calibration or tune & calibration or set(frame.stream) != calibration:
         raise ValueError("Exactly disjoint declared calibration engines required")
     if frame.empty or not 0 < alpha < 1 or minimum_engines < 1:
         raise ValueError("Finite calibration sample and valid support settings required")
-    if set(frame.life_unit) != {"cycles"} or not (frame.rul_cycles > 0).all():
+    if life_unit not in {"cycles", "operating_hours"} or (
+        life_unit == "operating_hours" and not scope.startswith("synthetic_sensor_model:")
+    ):
+        raise ValueError("Explicit native-unit calibration scope required")
+    target, anchor = ("rul_cycles", "cycle") if life_unit == "cycles" else ("rul_hours", "hour")
+    if set(frame.life_unit) != {life_unit} or not (frame[target] > 0).all():
         raise ValueError("Nonterminal native-cycle calibration required")
-    if frame[["stream", "cycle"]].duplicated().any():
+    if frame[["stream", anchor]].duplicated().any():
         raise ValueError("Duplicate decision anchors cannot inflate calibration")
     values = np.asarray(prediction, dtype=float)
     if values.shape != (len(frame),) or not np.isfinite(values).all():
         raise ValueError("Finite aligned calibration predictions required")
-    if not np.isfinite(frame.rul_cycles.to_numpy(dtype=float)).all():
+    if not np.isfinite(frame[target].to_numpy(dtype=float)).all():
         raise ValueError("Finite calibration targets required")
     # Display point policy is nonnegative, so calibration uses that same estimator.
-    residual = np.abs(np.maximum(0, values) - frame.rul_cycles.to_numpy(dtype=float))
+    residual = np.abs(np.maximum(0, values) - frame[target].to_numpy(dtype=float))
     scores = pd.Series(residual, index=frame.stream.to_numpy()).groupby(level=0).max().sort_index()
     n = len(scores)
     rank = math.ceil((n + 1) * (1 - alpha))
@@ -51,10 +58,10 @@ def calibrate_engine_intervals(
         reasons.append("below_declared_minimum_independent_engines")
     radius = float(np.sort(scores.to_numpy())[rank - 1]) if rank <= n else None
     supported = not reasons
-    return dict(
+    report = dict(
         supported=supported,
         reasons=reasons,
-        life_unit="cycles",
+        life_unit=life_unit,
         target_cap=None,
         nominal_coverage=1 - alpha,
         alpha=alpha,
@@ -67,7 +74,7 @@ def calibrate_engine_intervals(
         candidate_radius_cycles=radius,
         displayed_radius_cycles=radius if supported else None,
         display_enabled=False,
-        applicability=SCOPE,
+        applicability=scope,
         point_policy="nonnegative",
         coverage_guaranteed=False,
         assumptions="exchangeable engines within declared scope; fixed causal decision anchors",
@@ -75,6 +82,10 @@ def calibrate_engine_intervals(
         if radius is not None
         else None,
     )
+    return {
+        k.replace("cycles", "hours") if life_unit == "operating_hours" else k: v
+        for k, v in report.items()
+    }
 
 
 def interval_prediction(calibration, raw_prediction, *, scope=SCOPE, shifted=False):
