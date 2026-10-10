@@ -1,6 +1,13 @@
 version: failure-review-policy-v1
 probability_display_enabled: false
 automatic_release_enabled: false
+anomaly:
+  selection_role: tune_only
+  consecutive_candidates: [2, 3]
+  cooldown_hours_candidates: [6, 12]
+  maximum_false_alerts_per_1000_normal_hours: 5
+  quality_fault_action: abstain_and_reset_pending_evidence
+  alert_meaning: engineering_review_not_diagnosis
 review_threshold_role: frozen_tune_only_raw_score
 false_alert_budget_per_1000_native_cycles: 5
 decision_cost_unit: illustrative_inspection_equivalents
