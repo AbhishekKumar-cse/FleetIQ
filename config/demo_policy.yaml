@@ -1,6 +1,16 @@
 version: failure-review-policy-v1
 probability_display_enabled: false
 automatic_release_enabled: false
+health:
+  version: support-health-v1
+  score_formula: 100_times_one_minus_calibrated_horizon_risk
+  aggregation: minimum_eligible_critical_component
+  watch_risk: 0.3
+  critical_risk: 0.8
+  maximum_age_hours: 6
+  thresholds_scope: fictional_demo_rules_not_operational_validation
+  missing_essential_action: unknown_null_score
+  mutates_serviceability: false
 anomaly:
   selection_role: tune_only
   consecutive_candidates: [2, 3]
