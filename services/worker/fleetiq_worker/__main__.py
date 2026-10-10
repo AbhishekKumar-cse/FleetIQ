@@ -35,6 +35,12 @@ def execute(engine, lease):
             from fleetiq_worker.dataset_handler import import_dataset
 
             outcome = import_dataset(engine, lease)
+        elif lease.job["kind"] in {"prediction.compute", "prediction.explain"}:
+            from fleetiq_worker.prediction_handler import compute, explain
+
+            outcome = (compute if lease.job["kind"] == "prediction.compute" else explain)(
+                engine, lease
+            )
         else:
             with engine.connect() as c:
                 outcome = dispatch(c, lease.job)

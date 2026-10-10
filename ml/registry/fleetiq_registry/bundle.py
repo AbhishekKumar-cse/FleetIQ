@@ -79,7 +79,11 @@ class Bundle:
             )
         if request["names"] != spec["names"] or request["schema_hash"] != spec["schema_hash"]:
             raise ValueError("Ordered feature schema mismatch")
-        if not request["supported"]:
+        if (
+            not request["supported"]
+            or (spec["track"] == "cmapss_benchmark" and request["native_cycle"] < 30)
+            or request.get("ood", False)
+        ):
             return identity | dict(
                 coverage="unsupported",
                 output=None,
@@ -148,8 +152,21 @@ def build_bundle(cfg, output):
             shutil.copytree(failure_root / name, output / "failure" / name)
     shutil.copytree(ROOT / "artifacts/anomaly", output / "anomaly")
     rul_selection = json.loads((ROOT / "artifacts/xgb_rul/selection.json").read_text())
-    shutil.copytree(ROOT / rul_selection["model_folder"], output / "rul")
+    if (
+        content_hash({k: v for k, v in rul_selection.items() if k != "selection_hash"})
+        != rul_selection["selection_hash"]
+    ):
+        raise ValueError("RUL selection integrity mismatch")
+    rul_source = (ROOT / rul_selection["model_folder"]).resolve()
+    if not rul_source.is_relative_to((ROOT / "artifacts").resolve()):
+        raise ValueError("Untrusted selected model directory")
+    shutil.copytree(rul_source, output / "rul")
     intervals = json.loads((ROOT / "artifacts/rul_calibrated/intervals.json").read_text())
+    if (
+        content_hash({k: v for k, v in intervals.items() if k != "calibration_hash"})
+        != intervals["calibration_hash"]
+    ):
+        raise ValueError("RUL interval integrity mismatch")
     if load_baseline(output / "rul")["bundle_hash"] != intervals["model_bundle_hash"]:
         raise ValueError("RUL calibration/model binding mismatch")
     shutil.copyfile(
