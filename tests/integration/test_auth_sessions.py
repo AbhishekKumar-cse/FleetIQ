@@ -106,6 +106,21 @@ def test_refresh_reuse_revokes_the_entire_session(auth_client):
         assert c.scalar(select(Session.revoked)) is True
 
 
+def test_backward_clock_keeps_activity_monotonic_without_extending_expiry(auth_client):
+    client, service, engine, _, _ = auth_client
+    response, csrf = login(client)
+    assert response.status_code == 200
+    with engine.connect() as c:
+        original = c.execute(select(Session.__table__)).mappings().one()
+    service.clock = lambda: original["issued_at"] - timedelta(milliseconds=50)
+    assert client.get("/auth/me").status_code == 200
+    assert client.post("/auth/refresh", headers={"X-CSRF-Token": csrf}).status_code == 200
+    with engine.connect() as c:
+        stored = c.execute(select(Session.__table__)).mappings().one()
+        assert stored["last_active_at"] == original["last_active_at"]
+        assert stored["expires_at"] == original["expires_at"]
+
+
 def test_forged_wrong_audience_expired_and_missing_claim_tokens_rejected(auth_client):
     client, service, _, _, _ = auth_client
     assert login(client)[0].status_code == 200

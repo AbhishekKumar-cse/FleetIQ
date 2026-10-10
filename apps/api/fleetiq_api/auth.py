@@ -156,8 +156,8 @@ class AuthService:
             statement = statement.where(Session.organization_id == org, Session.user_id == user)
         return c.execute(statement.with_for_update(of=Session.__table__)).mappings().one_or_none()
 
-    def valid(self, row):
-        now = self.clock()
+    def valid(self, row, *, now=None):
+        now = self.clock() if now is None else now
         return (
             row is not None
             and row["active"]
@@ -170,10 +170,13 @@ class AuthService:
     def authenticate(self, c, access):
         claims = self.tokens.decode(access)
         row = self.session(c, UUID(claims["sid"]), UUID(claims["org"]), UUID(claims["sub"]))
-        if not self.valid(row):
+        now = self.clock()
+        if not self.valid(row, now=now):
             raise AuthenticationError("inactive session")
         c.execute(
-            sa.update(Session).where(Session.id == row["id"]).values(last_active_at=self.clock())
+            sa.update(Session)
+            .where(Session.id == row["id"])
+            .values(last_active_at=max(now, row["last_active_at"]))
         )
         return row
 
@@ -186,7 +189,8 @@ class AuthService:
         except (ValueError, TypeError):
             return None
         row = self.session(c, sid)
-        if not self.valid(row):
+        now = self.clock()
+        if not self.valid(row, now=now):
             return None
         hashed = digest(token)
         if not hmac.compare_digest(hashed, row["refresh_hash"]):
@@ -202,7 +206,6 @@ class AuthService:
             return None
         if not hmac.compare_digest(digest(csrf), row["csrf_hash"]):
             return None
-        now = self.clock()
         refresh = f"{sid}.{secrets.token_urlsafe(48)}"
         csrf = secrets.token_urlsafe(32)
         c.execute(
@@ -220,7 +223,7 @@ class AuthService:
                 refresh_hash=digest(refresh),
                 csrf_hash=digest(csrf),
                 rotation=Session.rotation + 1,
-                last_active_at=now,
+                last_active_at=max(now, row["last_active_at"]),
             )
         )
         self.audit(
