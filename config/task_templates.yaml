@@ -1,0 +1,20 @@
+version: fictional-task-templates-v1
+templates:
+  investigate_sensor_departure:
+    revision: demo-1
+    authority: fictional_demo_engineering_review
+    description: Inspect observed sensor departures and verify measurement quality
+    duration_hours: 2
+    duration_slots: 2
+    skills: [engine_diagnostics]
+    parts: {}
+    automatic_replacement: false
+  approved_demo_filter_service:
+    revision: demo-1
+    authority: fictional_demo_engineering_review
+    description: Fictional filter service scope for workflow validation only
+    duration_hours: 3
+    duration_slots: 3
+    skills: [engine_maintenance]
+    parts: {DEMO-FILTER: 1}
+    automatic_replacement: false
