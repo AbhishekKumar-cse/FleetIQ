@@ -29,6 +29,7 @@ test-results/
 
 # Human documents belong under docs/, including scaffolder output.
 *.md
+!/README.md
 *.pdf
 *.doc
 *.docx

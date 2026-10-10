@@ -6,6 +6,7 @@ import subprocess
 from pathlib import Path
 
 ROOT_FILES = {
+    "README.md",  # Explicit user-authorized public documentation exception.
     ".gitignore",
     ".gitattributes",
     ".editorconfig",
@@ -138,4 +139,4 @@ if __name__ == "__main__":
         check(Path(__file__).resolve().parents[1], options.stage)
     except (ValueError, subprocess.CalledProcessError) as exc:
         parser.exit(1, f"Repository policy failed: {exc}\n")
-    print("Repository policy passed: implementation only; no staged documents or credentials.")
+    print("Repository policy passed: code and root README only; no private docs or credentials.")

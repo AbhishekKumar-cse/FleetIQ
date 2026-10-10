@@ -53,12 +53,13 @@ class RepositoryPolicyTests(unittest.TestCase):
             "tests/unit/test_imports.py",
             "pyproject.toml",
             "uv.lock",
+            "README.md",
             ".env.example",
         ):
             with self.subTest(path=path):
                 self.assertEqual(git("check-ignore", "--no-index", "-q", path).returncode, 1)
 
-    def test_no_tracked_or_staged_documents(self) -> None:
+    def test_only_root_readme_is_allowed_as_tracked_document(self) -> None:
         tracked = git("ls-files", "-z")
         staged = git("diff", "--cached", "--name-only", "-z")
         self.assertEqual(tracked.returncode, 0, tracked.stderr)
@@ -77,6 +78,8 @@ class RepositoryPolicyTests(unittest.TestCase):
         }
         for path in (tracked.stdout + staged.stdout).split("\0"):
             if not path:
+                continue
+            if path == "README.md":
                 continue
             with self.subTest(path=path):
                 self.assertFalse(path.startswith(("docs/", "data/", "artifacts/", ".secrets/")))
