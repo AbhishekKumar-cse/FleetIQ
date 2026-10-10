@@ -26,6 +26,8 @@ class Settings(BaseSettings):
     artifact_root: Path
     report_root: Path
     model_bundle_path: Path
+    model_bundle_sha256: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
+    inference_url: str = "http://127.0.0.1:8001"
     auth_issuer: str = Field(min_length=1)
     auth_audience: str = Field(min_length=1)
     auth_key_id: str = Field(min_length=1)
