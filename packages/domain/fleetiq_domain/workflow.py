@@ -388,6 +388,14 @@ def release_guard(c, principal, work, tasks):
         inspection = (
             c.execute(
                 sa.select(Inspection.__table__)
+                .join(
+                    AuditEvent,
+                    sa.and_(
+                        AuditEvent.organization_id == Inspection.organization_id,
+                        AuditEvent.target_id == Inspection.id,
+                        AuditEvent.target_kind == "inspection",
+                    ),
+                )
                 .where(
                     Inspection.organization_id == principal.organization_id,
                     Inspection.task_id == task["id"],
@@ -395,9 +403,7 @@ def release_guard(c, principal, work, tasks):
                     Inspection.procedure_revision_id == task["procedure_revision_id"],
                 )
                 .order_by(
-                    Inspection.completed_at.desc(),
-                    Inspection.created_at.desc(),
-                    Inspection.id.desc(),
+                    AuditEvent.id.desc(),
                 )
                 .limit(1)
             )
@@ -513,6 +519,10 @@ def task_transition(c, principal, task_id, expected_version, target, *, reason, 
             )
             if unmet:
                 raise ValueError("Task dependencies must complete first")
+        if target == "executing":
+            from fleetiq_domain.stock import issue_task
+
+            issue_task(c, principal, task_id)
         now = c.scalar(sa.select(sa.func.clock_timestamp()))
         occurred_at = occurred_at or now
         if occurred_at.tzinfo is None or occurred_at > now:

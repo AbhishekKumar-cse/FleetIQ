@@ -80,11 +80,12 @@ PartReservation = entity(
         "task_id": "uuid:required",
         "inventory_id": "uuid:required",
         "plan_id": "uuid:optional",
+        "component_id": "uuid:optional",
         "quantity": "number:required",
         "state": "text:required:'reserved'",
         "version": "int:required:0",
     },
-    refs={"task_id": "maintenance_task", "inventory_id": "inventory"},
+    refs={"task_id": "maintenance_task", "inventory_id": "inventory", "component_id": "component"},
     checks=(
         "quantity > 0 AND quantity < 'Infinity'::numeric",
         "state IN ('reserved','consumed','released')",

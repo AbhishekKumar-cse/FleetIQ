@@ -6,6 +6,8 @@ import pytest
 import sqlalchemy as sa
 from fleetiq_api.settings import Settings
 from fleetiq_domain.authorization import Forbidden, Principal
+from fleetiq_domain.models.components import Component
+from fleetiq_domain.models.inventory import Inventory, PartCompatibility, SerializedStock
 from fleetiq_domain.models.operations import AuditEvent, EventOutbox, Role, RoleAssignment, User
 from fleetiq_domain.models.predictions import FeatureSnapshot, ModelDeployment, Prediction
 from fleetiq_domain.models.work import (
@@ -15,6 +17,7 @@ from fleetiq_domain.models.work import (
     RecommendationEvidence,
     WorkOrder,
 )
+from fleetiq_domain.stock import reserve
 from fleetiq_domain.workflow import (
     approve_scope,
     draft_work_order,
@@ -39,6 +42,7 @@ def workflow_fixture(domain_connection, isolated_database):
         "technician": ["task:execute"],
         "inspector": ["release:record"],
         "admin": ["users:manage"],
+        "warehouse": ["inventory:write"],
     }.items():
         user = c.scalar(
             sa.insert(User)
@@ -155,6 +159,36 @@ def workflow_fixture(domain_connection, isolated_database):
         )
         .returning(ProcedureRevision.id)
     )
+    c.execute(
+        sa.insert(PartCompatibility).values(
+            organization_id=org,
+            part_id=ids["part"],
+            aircraft_type_id=ids["type"],
+            procedure_revision_id=procedure,
+        )
+    )
+    stock = c.scalar(
+        sa.insert(Inventory)
+        .values(
+            organization_id=org,
+            part_id=ids["part"],
+            site_id=ids["site"],
+            condition="serviceable",
+            on_hand=1,
+        )
+        .returning(Inventory.id)
+    )
+    serial = c.scalar(
+        sa.insert(Component)
+        .values(organization_id=org, part_id=ids["part"], serial="SPARE-1", kind="engine")
+        .returning(Component.id)
+    )
+    c.execute(
+        sa.insert(SerializedStock).values(
+            organization_id=org, inventory_id=stock, component_id=serial
+        )
+    )
+    ids.update(stock=stock, serial=serial)
     c.commit()
     application = sa.create_engine(
         make_url(Settings().database_url.get_secret_value()).set(database=isolated_database[1]),
@@ -265,6 +299,18 @@ def test_role_specific_audited_journey_inspection_and_forbidden_mutations(workfl
             == 4
         )
         task = c.scalar(sa.select(MaintenanceTask.id).where(MaintenanceTask.work_order_id == work))
+        with pytest.raises(ValueError, match="Full approved spare"):
+            task_transition(c, users["technician"], task, 0, "executing", reason="No spare yet")
+        reserve(
+            c,
+            users["warehouse"],
+            task,
+            ids["stock"],
+            1,
+            key="journey-reserve",
+            reason_text="Approved task spare",
+            component_id=ids["serial"],
+        )
         with pytest.raises(ValueError, match="complete every task"):
             transition(
                 c, users["technician"], work, 4, "inspection_pending", reason="No completion yet"
