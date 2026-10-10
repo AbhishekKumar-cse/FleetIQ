@@ -29,11 +29,16 @@ def main():
         print(report["model"], report["threshold"], report["tune"])
         return
     if args.task == "rul":
-        if args.model != "ridge" or args.track != "cmapss_benchmark":
-            raise ValueError("RUL currently requires ridge on cmapss_benchmark")
-        from fleetiq_training.rul_baseline import train_baselines
+        if args.model not in {"ridge", "xgboost"} or args.track != "cmapss_benchmark":
+            raise ValueError("RUL requires ridge or xgboost on cmapss_benchmark")
+        if args.model == "ridge":
+            from fleetiq_training.rul_baseline import train_baselines
 
-        report = train_baselines(experiment(args.config), args.output)
+            report = train_baselines(experiment(args.config), args.output)
+        else:
+            from fleetiq_training.xgb_rul import train_xgb_rul
+
+            report = train_xgb_rul(experiment(args.config), args.output)
         print(report["chosen"], report["tune"])
         return
     if args.model == "isolation_forest":
