@@ -1,0 +1,11 @@
+version: resources-demo-v1
+authority: fictional_demo_calendars_only
+days: 7
+slot_hours: 2
+duration_rounding: ceiling
+staff_pools: disjoint_named_members_with_qualified_slot_availability
+approved_and_started_jobs: locked
+receipts: confirmed_only
+baseline: excludes_candidate_job_downtime
+cost_unit: demo_cost_units
+requires_named_staff_validation: true
