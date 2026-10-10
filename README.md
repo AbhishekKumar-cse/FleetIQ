@@ -2,7 +2,7 @@
 
 Predictive maintenance and fleet availability prototype for **SIH Problem Statement 26249: Air Power — Predictive Maintenance & Fleet Availability**.
 
-FleetIQ aims to connect aircraft health telemetry, technical records, maintenance activity and spares so engineers can identify emerging problems and understand their effect on availability. Development currently reaches **Step 70**, including coverage-aware health indicators, replayable asset state, maintenance priority rules, a separate synthetic-hour model bundle and audited human maintenance workflows. This is a development prototype; benchmark results do not establish fitness for aircraft maintenance decisions.
+FleetIQ aims to connect aircraft health telemetry, technical records, maintenance activity and spares so engineers can identify emerging problems and understand their effect on availability. Development currently reaches **Step 75**, including guarded stock transactions, demand proposals, frozen resource calendars, a checked greedy scheduler and the MILP start/occupancy core. This is a development prototype; benchmark results do not establish fitness for aircraft maintenance decisions.
 
 ## Current implementation
 
@@ -20,8 +20,12 @@ FleetIQ aims to connect aircraft health telemetry, technical records, maintenanc
 - Installation-scoped twin snapshots with event cutoffs, replay hashes and immutable simulation clones.
 - Versioned maintenance priorities and procedure-bound human review, execution, inspection and closure.
 - Independently trained and evaluated synthetic-hour models, separate from NASA benchmark parameters.
+- Guarded, idempotent stock receipt/reservation/issue/return transactions, with serial-specific holds.
+- Read-only spare-demand scenarios and reorder proposals, with an SBA-Croston comparison baseline.
+- Immutable seven-day resource snapshots, disjoint staff pools and checked greedy schedule proposals.
+- Pyomo/HiGHS start and aircraft-occupancy variables; the full constrained optimizer remains future work.
 
-The NASA models are available through a **private inference API**. Worker inference currently supports explicit NASA benchmark jobs in native cycles; aircraft demo telemetry remains unsupported by those models. The separate synthetic-hour bundle has an offline loader; private API/worker integration for that track remains future work. Stored RUL explanations reconstruct native model output using a fixed training background. Aggregate ensemble probability attribution remains unsupported. Steps 66–70 provide domain services; their complete REST/UI integration, stock reservation, scheduling and scenario simulation remain subsequent stages. Redis and Kafka are conditional additions that require measured benefit. Cloud implementation is deferred while the owner learns Azure.
+The NASA models are available through a **private inference API**. Worker inference currently supports explicit NASA benchmark jobs in native cycles; aircraft demo telemetry remains unsupported by those models. The separate synthetic-hour bundle has an offline loader; private API/worker integration for that track remains future work. Stored RUL explanations reconstruct native model output using a fixed training background. Aggregate ensemble probability attribution remains unsupported. Steps 66–75 provide domain and scheduling services; complete REST/UI integration, the full constrained optimizer and scenario simulation remain subsequent stages. Redis and Kafka are conditional additions that require measured benefit. Cloud implementation is deferred while the owner learns Azure.
 
 ## Architecture
 
@@ -53,6 +57,12 @@ flowchart LR
     Evidence --> Review[Maintenance priority and engineering review]
     Review --> Workflow[Approved scope / execution / inspection]
     Workflow --> DB
+    Workflow --> Stock[Guarded physical stock transactions]
+    Stock --> DB
+    Evidence --> Forecast[Read-only demand and reorder proposals]
+    Calendar[Frozen tasks / resources / confirmed receipts] --> Greedy[Checked greedy proposals]
+    Calendar --> MILP[Nonapprovable MILP occupancy core]
+    MILP -. Step 76 onward .-> Optimizer[Full constrained optimizer]
 ```
 
 The local development setup runs the database through Docker Compose and the API, worker and frontend as separate processes in **WSL Ubuntu**. The current Compose file does not deploy the whole application.
@@ -114,7 +124,7 @@ Component support scores use `100 × (1 − calibrated probability)` only with e
 
 The state twin retains separate installation histories, filters by observation time and recording cutoff, and produces immutable snapshots with replay hashes. Maintenance priorities explain constraints, deadlines, compatible lower-RUL resource margins and supported risk/anomaly evidence. NASA cycles are never converted into operating hours. Fictional task templates require engineering review.
 
-The workflow service rechecks actor permissions and record versions, binds tasks and part quantities to immutable approved procedures, and writes audits/outbox events atomically. Technical approval and human plan approval are separate. Completed tasks require an independent passing inspection before explicit release and closure. Stock transactions and resource scheduling start after Step 70; workflow release does not automatically set aircraft serviceability.
+The workflow service rechecks actor permissions and record versions, binds tasks and part quantities to immutable approved procedures, and writes audits/outbox events atomically. Technical approval and human plan approval are separate. Completed tasks require an independent passing inspection before explicit release and closure. Workflow release does not automatically set aircraft serviceability.
 
 The independent synthetic model uses 13 observed features: causal context residuals, five-reading means/slopes, workload, ambient conditions, observed age and operating hours. Its 24-hour risk model was selected before independent calibration/test generation. Final evaluation over 64 test engines gives **precision 73.21%, recall 23.70%, F1 35.81%, accuracy 79.95%** across 733 eligible windows, and detects 16 of 49 eligible failure events. There were 15 false alert windows over 4,386 exposure hours; correlated windows are not independent review events. This failure-risk model remains weak.
 
@@ -128,6 +138,22 @@ uv run pytest tests/integration/test_twin_projection.py tests/integration/test_w
 ```
 
 Training creates ignored local artifacts and evaluation receipts. Treat a new training run as a new experiment; recorded final-test outcomes must not become tuning inputs.
+
+## Stock and scheduling services (Steps 71–75)
+
+Stock services validate fresh permissions, compatible procedure demand, site and serial condition. A reservation holds usable stock without debiting physical on-hand. Task start consumes the complete approved reservation atomically with the execution event; retries and resumes cannot issue it twice. Cancellation releases an unconsumed hold. Issued returns enter quarantine/repair stock; promotion to serviceable requires a separate authorized passing inspection tied to inbound evidence and the current stock version. Unallocated nonserialized receipts can be reversed with compensating immutable movements. Forecasts never call stock mutations.
+
+Demand proposals sum eligible marginal probability × approved quantity at the same horizon, excluding already-reserved jobs. Unsupported risk produces `needs_review` and unknown demand. Scenario bands disclose workload correlation, uncertain lead time and event-timing assumptions; confirmed receipts affect stock position, speculative receipts do not. Pack rounding is explicit. SBA-Croston supplies a support-gated historical comparison, which is never added to risk demand.
+
+Planning snapshots use 84 two-hour slots over seven days, round durations upward, and preserve source versions and a reproducible hash. They validate dependency DAGs, hard windows, named staff qualifications and disjoint pools. Approved/started jobs stay locked; candidate reservations reduce only their own remaining demand. The greedy baseline checks inventory at each start, bays, skills, same-component exclusions, precedence and named-staff continuity. Mandatory conflicts are infeasible; optional omissions remain visible backlog. Proposals do not mutate live reservations.
+
+The MILP core defines start, omission, active-task, aircraft union/availability and nonnegative inventory variables. Toy fixtures verify overlapping downtime is counted once and mandatory jobs cannot be omitted. **Step 76 capacity, stock-balance, precedence, capability and objective constraints are pending**; this core is explicitly nonapprovable. A successful occupancy-fixture solve does not establish a feasible maintenance plan. Solver integration follows the official [Pyomo HiGHS interface](https://pyomo.readthedocs.io/en/6.10.1/_modules/pyomo/contrib/appsi/solvers/highs.html).
+
+```bash
+source scripts/env.sh
+uv run pytest tests/integration/test_stock_races.py tests/integration/test_workflow_transitions.py
+uv run pytest tests/unit/test_spare_forecast.py tests/unit/test_planning_inputs.py tests/unit/test_greedy_scheduler.py tests/unit/test_milp_occupancy.py
+```
 
 ## Local setup in WSL Ubuntu
 
