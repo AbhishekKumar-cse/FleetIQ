@@ -1,4 +1,3 @@
-
 import pyomo.environ as pyo
 import pytest
 from fleetiq_scheduling.inputs import Baseline
