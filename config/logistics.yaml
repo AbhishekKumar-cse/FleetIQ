@@ -1,0 +1,16 @@
+version: logistics-demo-v1
+authority: fictional_demo_proposals_only
+service_level: 0.95
+lead_hours: 24
+lead_max_hours: 48
+review_hours: 24
+scenarios: 5000
+seed: 26249
+workload_correlation: 0.35
+historical_baseline:
+  method: SBA-Croston
+  alpha: 0.1
+  minimum_bins: 12
+  minimum_nonzero_events: 4
+  bin_hours: 24
+approval: human_review_required_no_automatic_purchase
