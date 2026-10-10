@@ -2,7 +2,7 @@
 
 Predictive maintenance and fleet availability prototype for **SIH Problem Statement 26249: Air Power — Predictive Maintenance & Fleet Availability**.
 
-FleetIQ aims to connect aircraft health telemetry, technical records, maintenance activity and spares so engineers can identify emerging problems and understand their effect on availability. Development currently stops at **Step 55**, including an improved, independently evaluated failure-risk model. This is a development prototype; benchmark results do not establish fitness for aircraft maintenance decisions.
+FleetIQ aims to connect aircraft health telemetry, technical records, maintenance activity and spares so engineers can identify emerging problems and understand their effect on availability. Development currently reaches **Step 60**, including the independently evaluated failure-risk model, synthetic anomaly experiments and native-cycle remaining-life training/calibration. This is a development prototype; benchmark results do not establish fitness for aircraft maintenance decisions.
 
 ## Current implementation
 
@@ -12,8 +12,10 @@ FleetIQ aims to connect aircraft health telemetry, technical records, maintenanc
 - Telemetry validation, replay tooling and causal feature pipelines.
 - Next.js frontend foundation; the complete maintenance dashboard remains future work.
 - Offline model training, model selection, calibration evidence and frozen evaluation.
+- Context-residual Isolation Forest with synthetic persistence/quality robustness evidence.
+- Constant/usage/Ridge RUL references, CPU XGBoost comparison and engine-aware interval support checks.
 
-The improved failure model is **not yet integrated into the API**. Anomaly detection, remaining-useful-life models, explanations, maintenance scheduling, simulation and the full UI remain subsequent stages. Redis and Kafka are conditional additions that require measured benefit. Cloud implementation is deferred while the owner learns Azure.
+The improved models are **not yet integrated into the API**. Independent final RUL evaluation is next at Step 61; explanations, maintenance scheduling, simulation and the full UI remain subsequent stages. Redis and Kafka are conditional additions that require measured benefit. Cloud implementation is deferred while the owner learns Azure.
 
 ## Architecture
 
@@ -28,6 +30,10 @@ flowchart LR
     Worker --> DB
     NASA[NASA C-MAPSS training data] --> Features[Causal feature engineering]
     Features --> Training[Grouped model selection]
+    Synthetic[Controlled synthetic healthy fixtures] --> Anomaly[Context residual Isolation Forest]
+    Anomaly --> Robustness[Held-out persistence and quality tests]
+    Features --> RUL[Native-cycle RUL references and XGBoost]
+    RUL --> Intervals[Engine-aware calibration: display disabled]
     Training --> Bundle[Native model artifacts]
     Bundle --> Evaluation[Frozen FD003 evaluation]
     Web -. Planned domain workflows .-> API
@@ -63,6 +69,30 @@ Features include 21 sensor channels, means/standard deviations/slopes over 5, 15
 Development uses FD001 and FD003 training engines, with disjoint engine groups for fitting, tuning and calibration. Grouped cross-validation keeps an engine's windows in one fold. Features exclude future readings, engine identity and remaining life. Model selection and the raw operating threshold (`0.35167105415321204`) were frozen before the fresh FD003 final evaluation. Final test outcomes must not be reused for tuning.
 
 These results describe this benchmark and threshold. Only 20 test positives were available, and precise calibrated probability display remains disabled. They do not measure real fleet downtime reduction or performance across all aircraft types.
+
+## Anomaly and remaining-life evidence (Steps 56–60)
+
+The Isolation Forest uses causal sensor residuals against a context model fitted only on explicitly healthy synthetic fixtures. The score is an anomaly score/reference percentile, not failure probability or diagnosis. A tune-only policy requires two consecutive flags and a six-hour cooldown. Independent synthetic evaluation detected 12 of 12 labelled degradation events, with zero false review alerts over 528 valid normal exposure hours. Missing/impossible essential readings abstain, while valid extremes remain evidence. These small controlled fixtures do not establish operational false-alarm rates.
+
+RUL models use the existing FD001 development partitions: 62 fitting engines, 20 tuning engines and 18 calibration engines. All candidates use the same causal features and predetermined ten-cycle anchors from cycle 30, exclude terminal failed rows, and predict uncapped remaining life in **native cycles**. No flight-hour/day conversion is performed.
+
+| Model | Tuning MAE (cycles) | Tuning RMSE (cycles) |
+|---|---:|---:|
+| Selected Ridge reference | 26.13 | 36.70 |
+| Selected CPU XGBoost candidate | 22.92 | 33.43 |
+
+These are engine-weighted development metrics, **not final-test RUL results**. XGBoost cleared the frozen one-cycle MAE improvement gate. Engine-max residual calibration counts 18 independent engines rather than hundreds of correlated windows. It falls below the declared 20-engine support floor; the diagnostic candidate radius is also very wide (218.88 cycles). Consequently, **RUL interval display is disabled**. Step 61 final evaluation has not been performed.
+
+With prepared local datasets/features, reproduce the new stages from the repository root:
+
+```bash
+source scripts/env.sh
+uv run python -m fleetiq_training --task anomaly --model isolation_forest --track synthetic_sensor_model --config config/experiments.yaml --output artifacts/anomaly
+uv run python -m fleetiq_evaluation.anomaly
+uv run python -m fleetiq_training --task rul --model ridge --track cmapss_benchmark --config config/experiments.yaml --output artifacts/rul_ridge
+uv run python -m fleetiq_training --task rul --model xgboost --track cmapss_benchmark --config config/experiments.yaml --output artifacts/xgb_rul
+uv run python -m fleetiq_training.rul_intervals
+```
 
 ## Local setup in WSL Ubuntu
 
@@ -118,7 +148,7 @@ uv run pytest -m 'not integration and not e2e'
 python3 scripts/check_repository.py
 ```
 
-Database integration tests require configured isolated test databases and a running database. Historical full regression evidence after the model improvement recorded **251 passed tests and 248 subtests**; this is a recorded run, not a guarantee about an unconfigured checkout.
+Database integration tests require configured isolated test databases and a running database. Historical full regression evidence after the Step 55 model improvement recorded **251 passed tests and 248 subtests**; this is a recorded run, not a guarantee about an unconfigured checkout. Steps 56–60 add focused anomaly/RUL tests; database integration tests are separate from the non-integration checks above.
 
 ## Repository layout and policy
 
